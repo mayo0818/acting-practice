@@ -264,6 +264,15 @@
 
     sync(target) {
       const other = target === this.decks.A ? this.decks.B : this.decks.A;
+
+      /* 이미 SYNC 중이면 두 번째 누름은 해제: 원래 속도(피치 0.0%)로 되돌린다 */
+      if (target.els.syncBtn.classList.contains('is-on')) {
+        target.setPitch(0);
+        target.els.syncBtn.classList.remove('is-on');
+        this.toast(`DECK ${target.id} SYNC 해제`);
+        return;
+      }
+
       if (!target.buffer || !other.buffer || !target.bpm || !other.bpm) {
         this.toast('두 데크에 곡을 불러와야 SYNC할 수 있어요');
         return;
@@ -286,8 +295,8 @@
       if (target.playing) target._start(np);
       else target.offset = np;
 
+      /* 버튼은 해제할 때까지 켜진 상태로 둔다(두 번째 누름 = 해제의 기준) */
       target.els.syncBtn.classList.add('is-on');
-      setTimeout(() => target.els.syncBtn.classList.remove('is-on'), 700);
       this.toast(`DECK ${target.id} SYNC → ${target.effectiveBpm().toFixed(1)} BPM`);
     }
 
@@ -382,7 +391,7 @@
     _installTestApi() {
       const self = this;
       window.__DJ = {
-        version: '1.1.0',
+        version: '1.1.1',
         get errors() { return self.errors; },
         deck(id) { return self.decks[id.toUpperCase()].state(); },
         pads() { return self.pads.snapshot(); },

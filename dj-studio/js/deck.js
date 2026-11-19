@@ -267,7 +267,11 @@
         el.addEventListener('input', apply);
       });
 
-      this.els.pitch.addEventListener('input', () => this.setPitch(+this.els.pitch.value));
+      this.els.pitch.addEventListener('input', () => {
+        this.setPitch(+this.els.pitch.value);
+        /* 손으로 속도를 바꾸면 SYNC 상태가 아니게 된다 */
+        this.els.syncBtn.classList.remove('is-on');
+      });
       this.els.vol.addEventListener('input', () => this.setVolume(+this.els.vol.value / 100));
 
       /* 파형 스크러빙 */
@@ -344,6 +348,8 @@
       this.hotcues = [null, null, null, null];
       this.loop = null;
       this.bpm = DJ.detectBpm(buf);
+      /* 곡이 바뀌면 BPM이 달라져 이전 SYNC 정렬은 더 이상 성립하지 않는다 */
+      this.els.syncBtn.classList.remove('is-on');
       this.peaks = null;
       this.els.name.textContent = this.name;
       this.els.name.classList.remove('is-empty');
@@ -1084,6 +1090,7 @@
         position: this.position(),
         rate: this.rate,
         pitch: this.pitch,
+        syncOn: this.els.syncBtn.classList.contains('is-on'),
         bpm: this.bpm,
         effectiveBpm: this.effectiveBpm(),
         cue: this.cue,

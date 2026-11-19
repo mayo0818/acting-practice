@@ -84,8 +84,9 @@
               <i data-el="pitch">0.0%</i>
             </span>
           </div>
-          <button class="btn btn--load" type="button" data-act="load">＋ 곡</button>
-          <input type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac" data-el="file" hidden>
+          <label class="btn btn--load" data-act="load">＋ 곡
+            <input class="filehit" type="file" accept="audio/*,.mp3,.m4a,.mp4,.aac,.wav,.aif,.aiff,.caf,.flac,.ogg,.oga,.opus,.webm,.m4b" data-el="file">
+          </label>
         </div>
         <div class="wavewrap">
           <canvas class="wave" data-el="wave"></canvas>
@@ -202,13 +203,34 @@
         .connect(this.audio.masterGain);
     }
 
+    /* 오디오 컨텍스트가 새로 만들어졌을 때 그래프 다시 연결 */
+    rebuildGraph() {
+      this._killSource(0);
+      this.playing = false;
+      this._voice = null;
+      this._pendingSeek = null;
+      this._buildGraph();
+      ['low', 'mid', 'high'].forEach((b) => this.setEq(b, this.eq[b]));
+      this.setFilter(this.filter);
+      this.setPitch(this.pitch);
+      this.setVolume(this.volume);
+      this._syncTransportUI();
+    }
+
     _wire() {
       const r = this.root;
-      r.querySelector('[data-act="load"]').addEventListener('click', () => this.els.file.click());
+      /* iOS Safari 는 display:none 인 file input 의 programmatic click 을 무시한다.
+         입력을 버튼 위에 opacity:0 으로 겹쳐 두고 손가락이 입력을 직접 누르게 한다. */
       this.els.file.addEventListener('change', (e) => {
-        const f = e.target.files && e.target.files[0];
-        if (f) this.loadFile(f);
-        e.target.value = '';
+        const input = e.target;
+        const f = input.files && input.files[0];
+        if (!f) return;
+        /* 파일을 다 읽고 디코딩할 때까지 value 를 비우지 않는다
+           (iOS 에서 먼저 비우면 File 접근이 막힌다) */
+        Promise.resolve(this.loadFile(f)).then(
+          () => { try { input.value = ''; } catch (err) { /* noop */ } },
+          () => { try { input.value = ''; } catch (err) { /* noop */ } }
+        );
       });
 
       this.els.play.addEventListener('click', () => this.toggle());
@@ -285,21 +307,28 @@
 
     // 파일 로드
     async loadFile(file) {
-      if (!file) return;
+      if (!file) return false;
       const ctx = this.audio.ensure();
-      await this.audio.unlock();
+      this.audio.unlockSync();
       const pretty = file.name.replace(/\.[^.]+$/, '');
+      const prevName = this.buffer ? this.name : null;
       this.els.name.textContent = '불러오는 중… ' + pretty;
       this.els.name.classList.remove('is-empty');
       try {
-        const arr = await file.arrayBuffer();
-        const buf = await ctx.decodeAudioData(arr);
+        const buf = await DJ.decodeFile(ctx, file);
         this.setBuffer(buf, pretty);
         this.app.toast(`DECK ${this.id} · ${pretty} (${DJ.fmtTime(buf.duration)})`);
+        return true;
       } catch (err) {
-        this.els.name.textContent = this.buffer ? this.name : '곡을 불러오세요';
-        this.els.name.classList.toggle('is-empty', !this.buffer);
-        this.app.toast('이 파일은 열 수 없어요. MP3·M4A·WAV로 다시 시도해 주세요.');
+        this.els.name.textContent = prevName || '곡을 불러오세요';
+        this.els.name.classList.toggle('is-empty', !prevName);
+        const ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+        let why = '이 파일은 열 수 없어요.';
+        if (ext === '.m4p') why = '애플뮤직에서 받은 보호 파일(.m4p)은 열 수 없어요.';
+        else if (ext === '.mid' || ext === '.midi') why = 'MIDI 파일은 지원하지 않아요.';
+        else if (!file.size) why = '파일이 비어 있어요.';
+        this.app.toast(why + ' MP3 · M4A · WAV 로 다시 시도해 주세요.');
+        return false;
       }
     }
 
@@ -346,6 +375,7 @@
     _start(pos) {
       const ctx = this.audio.ctx;
       if (!this.buffer) return;
+      if (!this.audio.running) this.audio.unlockSync();
       pos = DJ.clamp(pos, 0, Math.max(0, this.duration - 0.002));
       this._killSource(0.008, true);
 
@@ -402,20 +432,28 @@
     }
 
     toggle() {
+      /* 터치와 클릭이 겹쳐 두 번 실행되면 켜졌다 바로 꺼지는 일이 생긴다.
+         80ms 안에 들어온 중복 호출은 같은 탭으로 보고 무시한다. */
+      const now = performance.now();
+      if (now - (this._tg || 0) < 80) return;
+      this._tg = now;
       if (this.playing) this.pause();
       else this.play();
     }
 
     play() {
       if (!this.buffer) {
+        this.audio.unlockSync();
         this.app.toast('먼저 곡을 불러오세요');
         return;
       }
-      this.audio.unlock();
+      /* iOS: 재생 예약 전에 동기적으로 resume */
+      const live = this.audio.unlockSync();
       if (this.playing) return;
       let pos = this.offset;
       if (pos >= this.duration - 0.03) pos = this.loop ? this.loop.start : 0;
       this._start(pos);
+      if (!live) this.app.toast('화면을 한 번 탭하면 소리가 켜져요');
     }
 
     pause() {

@@ -99,6 +99,9 @@ button{font-family:inherit;color:inherit}
 .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--warn);box-shadow:0 0 9px currentColor;color:var(--warn)}
 .badge.is-live{color:#b8f7c9;border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.10)}
 .badge.is-live .dot{background:#4ade80;color:#4ade80}
+.badge.is-call{border-color:rgba(251,191,36,.55);color:#fde68a}
+.badge.is-call .dot{background:var(--warn);color:var(--warn);animation:badgePulse 1.6s ease-in-out infinite}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.45)}50%{box-shadow:0 0 0 5px rgba(251,191,36,0)}}
 
 .btn{
   border:1px solid var(--line-2);
@@ -169,7 +172,15 @@ button{font-family:inherit;color:inherit}
 .track__meta b{color:var(--acc);font-weight:700;font-size:11px}
 .track__meta i{font-style:normal}
 .track__meta .sep{width:1px;height:8px;background:var(--line-2)}
-.btn--load{height:28px;padding:0 11px;border-radius:8px;border-color:color-mix(in srgb, var(--acc) 40%, transparent);background:var(--acc-soft);color:var(--acc);font-size:11.5px}
+.btn--load{display:inline-flex;align-items:center;justify-content:center;position:relative;overflow:hidden;height:28px;padding:0 11px;border-radius:8px;border-color:color-mix(in srgb, var(--acc) 40%, transparent);background:var(--acc-soft);color:var(--acc);font-size:11.5px;white-space:nowrap}
+
+/* iOS Safari: 파일 입력을 버튼 위에 투명하게 겹쳐 손가락이 직접 누르게 한다
+   (display:none 이면 picker 가 열리지 않는다) */
+.filehit{
+  position:absolute;inset:0;width:100%;height:100%;
+  opacity:0;cursor:pointer;font-size:0;border:0;padding:0;margin:0;
+  -webkit-appearance:none;appearance:none;z-index:3;
+}
 
 /* waveform */
 .wavewrap{position:relative;border-radius:10px;overflow:hidden;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.05);min-height:0}
@@ -447,7 +458,7 @@ button{font-family:inherit;color:inherit}
 }
 .segmented button.is-on{background:linear-gradient(180deg, rgba(163,230,53,.9), rgba(132,204,22,.85));color:#151a05;box-shadow:0 2px 10px rgba(163,230,53,.25)}
 .padsel__row{display:grid;grid-template-columns:minmax(0,1fr) 78px;gap:5px}
-.padsel__row .btn{height:30px}
+.padsel__row .btn{height:30px;position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center}
 .padsel__row .btn:first-child{background:linear-gradient(180deg, rgba(163,230,53,.22), rgba(163,230,53,.1));border-color:rgba(163,230,53,.45);color:#d9f99d}
 .padvol{display:grid;grid-template-columns:auto minmax(0,1fr) 26px;align-items:center;gap:6px;font-size:10.5px;color:var(--dim);font-weight:700}
 .padvol b{font-family:var(--mono);font-size:10.5px;color:var(--txt);text-align:right}
@@ -492,6 +503,7 @@ button{font-family:inherit;color:inherit}
 .modal__body ul{margin:0;padding-left:16px}
 .modal__body li{margin-bottom:3px}
 .modal__body b{color:var(--txt)}
+.modal__body .modal__ver{margin-top:14px;font-size:10.5px;color:var(--dim2);font-family:var(--mono)}
 
 /* ---------- toast ---------- */
 .toast{

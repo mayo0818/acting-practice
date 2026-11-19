@@ -1,5 +1,6 @@
 /* ===========================================================
    audio-engine.js — Web Audio 그래프·마스터 버스·BPM 분석 유틸
+   iOS/iPadOS Safari 대응: 오디오 세션(무음 스위치)·제스처 잠금 해제·파일 읽기
    =========================================================== */
 (function () {
   'use strict';
@@ -31,6 +32,62 @@
     }
     return c;
   };
+
+  /* ---------- iOS 파일 읽기/디코딩 ----------
+     iOS Safari에서는 ① input.value='' 를 먼저 지우면 File 접근이 막히고
+     ② ArrayBuffer 가 분리되면 decodeAudioData 가 실패한다.
+     FileReader 로 읽고, 실패하면 복사본으로 한 번 더 시도한다. */
+  DJ.readArrayBuffer = function (file) {
+    return new Promise((resolve, reject) => {
+      if (!file) { reject(new Error('파일이 없습니다')); return; }
+      let fr;
+      try {
+        fr = new FileReader();
+      } catch (e) { reject(e); return; }
+      fr.onload = () => {
+        if (fr.result && fr.result.byteLength) resolve(fr.result);
+        else reject(new Error('파일을 읽지 못했습니다'));
+      };
+      fr.onerror = () => reject(fr.error || new Error('파일을 읽지 못했습니다'));
+      fr.onabort = () => reject(new Error('파일 읽기가 취소되었습니다'));
+      try {
+        fr.readAsArrayBuffer(file);
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+
+  DJ.decodeAudio = function (ctx, arr) {
+    return new Promise((resolve, reject) => {
+      let done = false;
+      const ok = (b) => { if (!done) { done = true; resolve(b); } };
+      const fail = (e) => { if (!done) { done = true; reject(e || new Error('decode 실패')); } };
+      let p = null;
+      try {
+        p = ctx.decodeAudioData(arr, ok, fail);
+      } catch (e) {
+        fail(e);
+      }
+      if (p && typeof p.then === 'function') p.then(ok, fail);
+    });
+  };
+
+  /* 파일 → AudioBuffer (iOS 재시도 포함) */
+  DJ.decodeFile = async function (ctx, file) {
+    const arr = await DJ.readArrayBuffer(file);
+    try {
+      return await DJ.decodeAudio(ctx, arr);
+    } catch (e1) {
+      // iOS: 첫 시도에서 버퍼가 분리되거나 실패하면 복사본으로 재시도
+      const copy = arr.slice(0);
+      return await DJ.decodeAudio(ctx, copy);
+    }
+  };
+
+  /* ---------- 무음 WAV(0.1초) : iOS 오디오 세션 깨우기용 ---------- */
+  DJ.SILENT_WAV =
+    'data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
 
   /* ---------- BPM 추정 ---------- */
   DJ.detectBpm = function (buffer) {
@@ -112,17 +169,93 @@
       this._vu = { l: new Float32Array(1024), r: new Float32Array(1024) };
       this.lastLevel = { l: 0, r: 0, peakL: 0, peakR: 0 };
       this._peakHold = { l: 0, r: 0, t: 0 };
+
+      this._silentEl = null;
+      this._silentTried = false;
+      this.sessionType = 'none';
+      this._gestures = 0;
+      this._gAt = 0;
+      this._everRunning = false;
+      this._kicked = false;
+      this._rebuilt = 0;
+    }
+
+    /* 같은 탭에서 6종류 이벤트가 모두 들어오므로 제스처는 300ms 에 한 번만 센다 */
+    _countGesture() {
+      const now = performance.now();
+      if (!this._gAt || now - this._gAt > 300) {
+        this._gestures++;
+        this._gAt = now;
+      }
+    }
+
+    /* iPadOS: 오디오 세션을 playback 으로 올려야 무음 스위치에서도 소리가 난다 */
+    applySession() {
+      try {
+        const s = navigator.audioSession;
+        if (!s) { this.sessionType = 'unsupported'; return; }
+        if (s.type !== 'playback') s.type = 'playback';
+        this.sessionType = s.type || 'playback';
+      } catch (e) {
+        this.sessionType = 'error';
+      }
+    }
+
+    /* iOS 구버전: 무음 오디오 요소를 재생해 미디어 채널을 열어 둔다 */
+    primeSilentElement() {
+      try {
+        if (!this._silentEl) {
+          const el = document.createElement('audio');
+          el.setAttribute('playsinline', '');
+          el.setAttribute('webkit-playsinline', '');
+          el.setAttribute('preload', 'auto');
+          el.setAttribute('aria-hidden', 'true');
+          el.loop = true;
+          el.volume = 1;
+          el.src = DJ.SILENT_WAV;
+          el.style.cssText =
+            'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1';
+          (document.body || document.documentElement).appendChild(el);
+          this._silentEl = el;
+        }
+        const el = this._silentEl;
+        if (el.paused) {
+          const p = el.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        }
+        this._silentTried = true;
+      } catch (e) { /* noop */ }
+    }
+
+    /* 1샘플 무음 재생: iOS 에서 그래프를 확실히 깨우는 용도 */
+    kick() {
+      const ctx = this.ctx;
+      if (!ctx) return;
+      try {
+        const b = ctx.createBuffer(1, 1, ctx.sampleRate);
+        const s = ctx.createBufferSource();
+        s.buffer = b;
+        s.connect(ctx.destination);
+        s.start(0);
+        this._kicked = true;
+      } catch (e) { /* noop */ }
     }
 
     ensure() {
       if (this.ctx) return this.ctx;
       const AC = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AC({ latencyHint: 'interactive' });
+      let ctx;
+      try {
+        ctx = new AC({ latencyHint: 'interactive' });
+      } catch (e) {
+        ctx = new AC();
+      }
       this.ctx = ctx;
       this._build();
       this.unlocked = ctx.state === 'running';
       ctx.onstatechange = () => {
         this.unlocked = ctx.state === 'running';
+        if (this.unlocked) { this._kicked = false; this._everRunning = true; }
         window.dispatchEvent(new CustomEvent('dj:audio-state', { detail: ctx.state }));
       };
       return ctx;
@@ -132,6 +265,9 @@
       const ctx = this.ctx;
       this.masterGain = ctx.createGain();
       this.masterGain.gain.value = 0.82;
+
+      this.padBus = ctx.createGain();
+      this.padBus.gain.value = 0.85;
 
       this.comp = ctx.createDynamicsCompressor();
       this.comp.threshold.value = -9;
@@ -149,40 +285,79 @@
       });
       this.merger = ctx.createChannelMerger(2);
 
-      this.masterGain.connect(this.comp);
+      // padBus + 데크 → masterGain → 컴프레서 → 분석 → 스피커
       this.comp.connect(this.splitter);
       this.splitter.connect(this.anL, 0, 0);
       this.splitter.connect(this.anR, 1, 0);
       this.anL.connect(this.merger, 0, 0);
       this.anR.connect(this.merger, 0, 1);
       this.merger.connect(ctx.destination);
+      this.masterGain.connect(this.comp);
+      this.padBus.connect(this.masterGain);
 
       this.noiseBuf = DJ.makeNoise(ctx, 2);
       this._dist = DJ.distCurve(2.4);
-
-      // 패드 전용 버스
-      this.padBus = ctx.createGain();
-      this.padBus.gain.value = 0.85;
-      this.padBus.connect(this.masterGain);
     }
 
-    async unlock() {
+    get running() {
+      return !!this.ctx && this.ctx.state === 'running';
+    }
+
+    /* -------- 제스처 핸들러에서 '동기적으로' 호출하는 잠금 해제 --------
+       await 없이 ctx.resume() 을 즉시 호출해야 iOS Safari 가 인정한다. */
+    unlockSync() {
+      this.applySession();
       const ctx = this.ensure();
+      this._countGesture();
+      if (ctx.state !== 'running') {
+        try {
+          const p = ctx.resume();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch (e) { /* noop */ }
+      }
+      if (ctx.state === 'running' && !this._kicked) this.kick();
+      if (!this._silentTried) this.primeSilentElement();
+      this.unlocked = ctx.state === 'running';
+      if (this.unlocked) this._everRunning = true;
+      return this.unlocked;
+    }
+
+    /* 비동기 버전 (파일 로드 등 제스처 밖 흐름에서도 사용) */
+    async unlock() {
+      this.applySession();
+      const ctx = this.ensure();
+      this._countGesture();
       if (ctx.state !== 'running') {
         try { await ctx.resume(); } catch (e) { /* 사용자 제스처 필요 */ }
       }
-      if (ctx.state === 'running') {
-        // iOS: 무음 버퍼 1샘플 재생으로 세션 확실히 깨우기
-        try {
-          const b = ctx.createBuffer(1, 1, ctx.sampleRate);
-          const s = ctx.createBufferSource();
-          s.buffer = b;
-          s.connect(ctx.destination);
-          s.start(0);
-        } catch (e) { /* noop */ }
-      }
+      if (ctx.state === 'running' && !this._kicked) this.kick();
+      if (!this._silentTried) this.primeSilentElement();
       this.unlocked = ctx.state === 'running';
+      if (this.unlocked) this._everRunning = true;
       return this.unlocked;
+    }
+
+    /* 제스처를 여러 번 받았는데도 계속 잠겨 있으면 컨텍스트를 새로 만든다
+       (iOS 에서 페이지 로드 시점에 만든 컨텍스트가 영영 안 깨어나는 경우 대비) */
+    rescueIfStuck() {
+      const ctx = this.ctx;
+      if (!ctx) return false;
+      if (ctx.state === 'running' || this._everRunning) return false;
+      if (this._gestures < 3 || this._rebuilt >= 2) return false;
+      try { ctx.close(); } catch (e) { /* noop */ }
+      this.ctx = null;
+      this.unlocked = false;
+      this._kicked = false;
+      this._rebuilt++;
+      const fresh = this.ensure();
+      try {
+        const p = fresh.resume();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } catch (e) { /* noop */ }
+      this.kick();
+      this.unlocked = fresh.state === 'running';
+      window.dispatchEvent(new CustomEvent('dj:ctx-rebuilt'));
+      return true;
     }
 
     get t() { return this.ctx ? this.ctx.currentTime : 0; }

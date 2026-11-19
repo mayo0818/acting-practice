@@ -14,7 +14,7 @@
 <link rel="manifest" href='data:application/manifest+json,{"name":"DJ %EC%8A%A4%ED%8A%9C%EB%94%94%EC%98%A4","short_name":"DJ","display":"fullscreen","orientation":"landscape","background_color":"%2307080c","theme_color":"%2307080c","start_url":"./","icons":[]}'>
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMGIwZDE0Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIyZDNlZSIgc3Ryb2tlLXdpZHRoPSIxMSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjM0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNDcyYjYiIHN0cm9rZS13aWR0aD0iNyIgb3BhY2l0eT0iMC44NSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjEyIiBmaWxsPSIjYTNlNjM1Ii8+PGcgZmlsbD0iI2EzZTYzNSIgb3BhY2l0eT0iMC45Ij48cmVjdCB4PSIzMCIgeT0iMTQwIiB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHJ4PSI0Ii8+PHJlY3QgeD0iNTQiIHk9IjE0MCIgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiByeD0iNCIvPjxyZWN0IHg9IjExMiIgeT0iMTQwIiB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHJ4PSI0Ii8+PHJlY3QgeD0iMTM2IiB5PSIxNDAiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgcng9IjQiLz48L2c+PC9zdmc+">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMGIwZDE0Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIyZDNlZSIgc3Ryb2tlLXdpZHRoPSIxMSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjM0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNDcyYjYiIHN0cm9rZS13aWR0aD0iNyIgb3BhY2l0eT0iMC44NSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjEyIiBmaWxsPSIjYTNlNjM1Ii8+PC9zdmc+">
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=1.1.0">
 </head>
 <body>
 <div class="app">
@@ -82,10 +82,9 @@
       <div class="padsel">
         <div class="padsel__title"><b data-el="padselName">킥</b><span data-el="padselTag">내장 사운드</span></div>
         <div class="padsel__row">
-          <button class="btn btn--mini" data-act="padassign" type="button">파일 할당</button>
+          <label class="btn btn--mini" data-act="padassign">파일 할당<input class="filehit" type="file" accept="audio/*,.mp3,.m4a,.mp4,.aac,.wav,.aif,.aiff,.caf,.flac,.ogg,.oga,.opus,.webm,.m4b" data-el="padfile"></label>
           <button class="btn btn--mini btn--ghost" data-act="padclear" type="button">초기화</button>
         </div>
-        <input type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac" data-el="padfile" hidden>
       </div>
       <div class="padvol">
         <span>패드 볼륨</span>
@@ -121,6 +120,7 @@
     <div class="modal__body">
       <h3>1. 소리 켜기</h3>
       <p>iOS는 첫 터치 전까지 소리를 막습니다. 화면 아무 곳이나 한 번 누르면 상단 배지가 <b>오디오 켜짐</b>으로 바뀝니다.</p>
+      <p>아이패드·아이폰 옆면의 <b>무음 스위치</b>가 켜져 있어도 이 앱은 소리가 나도록 오디오 세션을 <b>playback</b>으로 잡습니다(iPadOS 16.4 이상). 그래도 소리가 안 들리면 볼륨 버튼과 무음 스위치를 한 번 확인해 주세요.</p>
       <h3>2. 곡 불러오기</h3>
       <p>DECK A / DECK B의 <b>＋ 곡</b> 버튼을 누르고 파일 앱에서 MP3·M4A·WAV·AAC를 고르세요. 데크 위로 파일을 끌어다 놓아도 됩니다. 곡을 넣으면 파형과 BPM이 자동으로 표시됩니다.</p>
       <h3>3. 데크 조작</h3>
@@ -140,15 +140,16 @@
       <p>Safari의 공유 버튼 → <b>홈 화면에 추가</b>를 하면 주소창 없이 전체 화면 앱처럼 열립니다. 인터넷 연결 없이도 동작합니다.</p>
       <h3>단축키</h3>
       <p>패드 <b>1 2 3 4 / Q W E R / A S D F / Z X C V</b> · 데크 A 재생 <b>Space</b> · 데크 B 재생 <b>Enter</b> · 크로스페이더 <b>← →</b></p>
+      <p class="modal__ver">v1.1.0 · 아이패드 Safari 오디오·파일 선택 수정</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/audio-engine.js"></script>
-<script src="js/deck.js"></script>
-<script src="js/pads.js"></script>
-<script src="js/app.js"></script>
+<script src="js/audio-engine.js?v=1.1.0"></script>
+<script src="js/deck.js?v=1.1.0"></script>
+<script src="js/pads.js?v=1.1.0"></script>
+<script src="js/app.js?v=1.1.0"></script>
 </body>
 </html>

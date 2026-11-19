@@ -302,7 +302,7 @@
         pad.el = el;
         el.addEventListener('pointerdown', (e) => {
           e.preventDefault();
-          el.setPointerCapture(e.pointerId);
+          try { el.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
           this.select(i);
           this._down(i);
         });
@@ -310,6 +310,16 @@
         el.addEventListener('pointercancel', () => this._up(i));
         el.addEventListener('lostpointercapture', () => this._up(i));
         el.addEventListener('contextmenu', (e) => e.preventDefault());
+        /* PointerEvent 가 없는 구형 WebKit(iPadOS 12 이하) 대비 */
+        if (!window.PointerEvent) {
+          el.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.select(i);
+            this._down(i);
+          }, { passive: false });
+          el.addEventListener('touchend', (e) => { e.preventDefault(); this._up(i); }, { passive: false });
+          el.addEventListener('touchcancel', () => this._up(i));
+        }
       });
 
       this.ui.mode.addEventListener('click', (e) => {
@@ -317,12 +327,18 @@
         if (!b) return;
         this.setMode(b.dataset.mode);
       });
-      this.ui.assignBtn.addEventListener('click', () => this.ui.file.click());
+      /* 파일 할당 버튼은 <label> 안에 file input 을 겹쳐 두었다(iOS 에서 picker 가 열리도록).
+         여기서 input.click() 을 또 부르면 두 번 열리므로 호출하지 않는다. */
       this.ui.clearBtn.addEventListener('click', () => this.clearSelected());
       this.ui.file.addEventListener('change', (e) => {
-        const f = e.target.files && e.target.files[0];
-        if (f) this.assignFile(f);
-        e.target.value = '';
+        const input = e.target;
+        const f = input.files && input.files[0];
+        if (!f) return;
+        /* iOS: 파일을 읽기 전에 value 를 비우면 File 접근이 막힌다 */
+        Promise.resolve(this.assignFile(f)).then(
+          () => { try { input.value = ''; } catch (err) { /* noop */ } },
+          () => { try { input.value = ''; } catch (err) { /* noop */ } }
+        );
       });
       this.ui.vol.addEventListener('input', () => {
         const v = +this.ui.vol.value / 100;
@@ -359,6 +375,8 @@
 
     _down(i) {
       const pad = this.pads[i];
+      /* iOS: 패드 소리는 제스처 안에서 동기적으로 resume 한 뒤 울려야 한다 */
+      this.audio.unlockSync();
       pad.voices = pad.voices.filter((v) => v.alive);
       this.trigger(i, 1);
       pad.el.classList.add('is-hit');
@@ -389,6 +407,7 @@
       const audio = this.audio;
       const c = audio.ctx;
       if (!c) { audio.ensure(); }
+      if (!audio.running) audio.unlockSync();
       const ctx = audio.ctx;
       pad.hitCount++;
       this.hits++;
@@ -435,13 +454,12 @@
     }
 
     async assignFile(file) {
-      if (!file) return;
+      if (!file) return false;
       const audio = this.audio;
-      await audio.unlock();
+      audio.unlockSync();
       const ctx = audio.ensure();
       try {
-        const arr = await file.arrayBuffer();
-        const buf = await ctx.decodeAudioData(arr);
+        const buf = await DJ.decodeFile(ctx, file);
         const pad = this.pads[this.selected];
         pad.custom = { buffer: buf, name: file.name.replace(/\.[^.]+$/, '') };
         pad.el.classList.add('is-custom');
@@ -450,8 +468,10 @@
         pad.el.querySelector('b').textContent = short;
         this.select(this.selected);
         this.app.toast(`패드 ${this.selected + 1}에 “${pad.custom.name}” 할당`);
+        return true;
       } catch (e) {
-        this.app.toast('이 파일은 열 수 없어요. MP3·M4A·WAV로 시도해 주세요.');
+        this.app.toast('이 파일은 열 수 없어요. MP3 · M4A · WAV 로 시도해 주세요.');
+        return false;
       }
     }
 

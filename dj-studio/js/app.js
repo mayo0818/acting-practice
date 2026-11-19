@@ -93,6 +93,18 @@
       });
     }
 
+    /* resume 은 비동기라 상태가 곧바로 바뀌지 않는다.
+       잠시 뒤에도 안 깨어나 있으면(구형 iOS) 컨텍스트를 새로 만든다. */
+    _retryUnlock() {
+      if (this._rescueT) return;
+      this._rescueT = setTimeout(() => {
+        this._rescueT = 0;
+        if (this.audio.running) { this._paintAudio(true); return; }
+        if (this.audio.rescueIfStuck()) this.toast('오디오 엔진을 다시 연결했어요. 재생을 눌러 주세요.');
+        this._paintAudio(this.audio.running);
+      }, 700);
+    }
+
     _applyCrossfade(v) {
       const x = DJ.clamp(v, 0, 100) / 100;
       const ga = Math.cos(x * Math.PI * 0.5);
@@ -104,16 +116,46 @@
     }
 
     _wireGlobal() {
-      /* iOS 오디오 잠금 해제: 첫 터치 */
-      const unlock = async () => {
-        const ok = await this.audio.unlock();
-        if (ok) this._paintAudio(true);
+      /* iOS/iPadOS 오디오 잠금 해제.
+         pointerdown 만으로는 iOS Safari 가 잠금을 풀지 않는 경우가 많아
+         touchstart·touchend·click·mousedown 에서도 '동기적으로' resume 한다. */
+      const gesture = () => {
+        const ok = this.audio.unlockSync();
+        this._paintAudio(ok);
+        if (!ok) this._retryUnlock();
       };
-      document.addEventListener('pointerdown', () => {
-        if (!this.audio.unlocked) unlock();
-      }, { capture: true, passive: true });
-      this.els.audioBadge.addEventListener('click', unlock);
-      window.addEventListener('dj:audio-state', () => this._paintAudio(this.audio.ctx && this.audio.ctx.state === 'running'));
+      ['pointerdown', 'touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach((ev) => {
+        document.addEventListener(ev, gesture, { capture: true, passive: true });
+      });
+
+      this.els.audioBadge.addEventListener('click', async () => {
+        const ok = await this.audio.unlock();
+        this._paintAudio(ok);
+        if (!ok) {
+          this._retryUnlock();
+          this.toast('오디오를 켜지 못했어요. 화면을 한 번 더 탭해 주세요.');
+        }
+      });
+      window.addEventListener('dj:audio-state', () => this._paintAudio(this.audio.running));
+
+      /* 컨텍스트를 새로 만든 경우(구형 iOS 구제) 데크 그래프를 다시 연결 */
+      window.addEventListener('dj:ctx-rebuilt', () => {
+        DJ.lib = { noise: this.audio.noiseBuf, dist: this.audio._dist };
+        this.decks.A.rebuildGraph();
+        this.decks.B.rebuildGraph();
+        this.audio.setMaster(+this.els.master.value / 100);
+        this.audio.setPadVolume(+document.querySelector('[data-el="padvol"]').value / 100);
+        this._applyCrossfade(+this.els.xf.value);
+        this._paintAudio(this.audio.running);
+      });
+
+      /* 첫 로드 후에도 잠겨 있으면 배지를 깜박여 안내 */
+      setTimeout(() => {
+        if (!this.audio.running) this.els.audioBadge.classList.add('is-call');
+      }, 1400);
+      window.addEventListener('dj:audio-state', () => {
+        this.els.audioBadge.classList.toggle('is-call', !this.audio.running);
+      });
 
       /* 도움말 */
       const open = () => { this.els.helpModal.hidden = false; };
@@ -170,13 +212,23 @@
         this.pads.pads.forEach((p) => this.pads._up(p.index));
       });
 
-      /* 앱을 벗어났다 돌아오면 오디오 다시 깨우기 */
-      document.addEventListener('visibilitychange', () => {
+      /* 앱을 벗어났다 돌아오면 오디오 다시 깨우기 (iOS 는 'interrupted' 상태가 된다) */
+      const wake = () => {
         const ctx = this.audio.ctx;
-        if (!document.hidden && ctx && ctx.state === 'suspended') {
-          ctx.resume().catch(() => {});
+        if (!ctx) return;
+        if (ctx.state !== 'running') {
+          try {
+            const p = ctx.resume();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          } catch (e) { /* noop */ }
         }
+        this._paintAudio(this.audio.running);
+      };
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) wake();
       });
+      window.addEventListener('pageshow', wake);
+      window.addEventListener('focus', wake);
 
       /* 화면 회전/크기 변경 */
       window.addEventListener('resize', () => {
@@ -202,8 +254,12 @@
     }
 
     _paintAudio(on) {
-      this.els.audioBadge.classList.toggle('is-live', !!on);
-      this.els.audioText.textContent = on ? '오디오 켜짐' : '탭해서 오디오 켜기';
+      const live = !!on;
+      this.els.audioBadge.classList.toggle('is-live', live);
+      this.els.audioBadge.classList.toggle('is-call', !live && this._booted);
+      this.els.audioText.textContent = live ? '오디오 켜짐' : '탭해서 오디오 켜기';
+      document.body.dataset.audio = live ? 'on' : 'off';
+      if (live) this._booted = true;
     }
 
     sync(target) {
@@ -326,7 +382,7 @@
     _installTestApi() {
       const self = this;
       window.__DJ = {
-        version: '1.0.0',
+        version: '1.1.0',
         get errors() { return self.errors; },
         deck(id) { return self.decks[id.toUpperCase()].state(); },
         pads() { return self.pads.snapshot(); },
@@ -338,7 +394,16 @@
             sampleRate: c ? c.sampleRate : 0,
             master: c ? self.audio.masterGain.gain.value : 0,
             padVolume: c ? self.audio.padBus.gain.value : 0,
+            session: self.audio.sessionType,
+            gestures: self.audio._gestures,
+            rebuilt: self.audio._rebuilt,
+            silentEl: !!(self.audio._silentEl && !self.audio._silentEl.paused),
           };
+        },
+        /* 테스트용: iOS 에서 앱 전환 후처럼 컨텍스트를 잠근다 */
+        suspend() {
+          const c = self.audio.ctx;
+          return c ? c.suspend().then(() => c.state, () => c.state) : Promise.resolve('none');
         },
         level() {
           const lv = self.audio.levels();

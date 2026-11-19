@@ -511,7 +511,7 @@
     _installTestApi() {
       const self = this;
       window.__DJ = {
-        version: '1.1.2',
+        version: '1.1.3',
         get errors() { return self.errors; },
         deck(id) { return self.decks[id.toUpperCase()].state(); },
         pads() { return self.pads.snapshot(); },

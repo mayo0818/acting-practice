@@ -6,6 +6,8 @@
   const DJ = window.DJ;
 
   const LOOP_BEATS = [1, 2, 4, 8];
+  /* 핫큐 1~4 삭제와 같은 길게 누르기 기준(0.55초) */
+  const LONG_PRESS_MS = 550;
 
   class Deck {
     constructor(app, id, root) {
@@ -45,6 +47,9 @@
       this._jog = null;
       this._hotLong = false;
       this._hotTimer = 0;
+      this._cueLong = false;
+      this._cueTimer = 0;
+      this._cueDown = false;
       this._last = { time: '', bpm: '', pitch: '', badge: '' };
 
       this.root.innerHTML = Deck.template(id);
@@ -234,7 +239,7 @@
       });
 
       this.els.play.addEventListener('click', () => this.toggle());
-      this.els.cueBtn.addEventListener('click', () => this.cueAction());
+      this._wireCue();
       this.els.syncBtn.addEventListener('click', () => this.app.sync(this));
 
       this.hotEls.forEach((el) => {
@@ -318,6 +323,70 @@
         const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
         if (f) this.loadFile(f);
       });
+    }
+
+    /* CUE 버튼: 짧게 누르면 cueAction(), 0.55초 이상 길게 누르면 큐 지점 초기화
+       (핫큐 1~4 의 길게 눌러 삭제와 같은 방식) */
+    _wireCue() {
+      const el = this.els.cueBtn;
+      const stopTimer = () => {
+        if (this._cueTimer) { clearTimeout(this._cueTimer); this._cueTimer = 0; }
+      };
+      el.addEventListener('pointerdown', (e) => {
+        if (e.button != null && e.button !== 0) return;
+        try { el.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+        this._cueDown = true;
+        this._cueLong = false;
+        stopTimer();
+        el.classList.add('is-holding');
+        this._cueTimer = setTimeout(() => {
+          this._cueTimer = 0;
+          this._cueLong = true;
+          el.classList.remove('is-holding');
+          this.cueLongPress();
+        }, LONG_PRESS_MS);
+      });
+      const up = () => {
+        const pending = !!this._cueTimer;
+        stopTimer();
+        const long = this._cueLong;
+        this._cueLong = false;
+        this._cueDown = false;
+        el.classList.remove('is-holding');
+        /* 짧은 탭은 큐 동작, 길게 누른 뒤 손을 뗀 것은 아무것도 하지 않는다 */
+        if (pending && !long) this.cueAction();
+      };
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointercancel', () => {
+        stopTimer();
+        this._cueLong = false;
+        this._cueDown = false;
+        el.classList.remove('is-holding');
+      });
+      /* 키보드(Enter/Space)로 누른 경우만 click 이 온다 — 마우스/터치 click 은 detail≥1 이라 무시 */
+      el.addEventListener('click', (e) => {
+        if (e.detail === 0) this.cueAction();
+      });
+    }
+
+    /* 길게 누르기 판정 시점의 동작 */
+    cueLongPress() {
+      if (!this.buffer) {
+        this.app.toast('먼저 곡을 불러오세요');
+        return;
+      }
+      if (!this.cueSet) {
+        this.app.toast('초기화할 CUE가 없어요');
+        return;
+      }
+      this.clearCue();
+      this.app.toast('CUE 초기화');
+    }
+
+    clearCue() {
+      this.cue = 0;
+      this.cueSet = false;
+      this._syncTransportUI();
     }
 
     // 파일 로드

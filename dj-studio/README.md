@@ -54,6 +54,8 @@
 
 ### 터치·iOS 대응
 - `pointerdown/move/up` 기반 **멀티터치**(한 손 패드 + 다른 손 크로스페이더·조그휠 동시 조작)
+- **모든 슬라이더(피치·채널 볼륨·EQ·마스터·크로스페이더·패드 볼륨)를 포인터로 직접 제어** — 트랙 아무 곳이나 짚으면 그 자리 값으로 바로 이동하고, 끄는 동안 연속으로 따라옵니다. iOS Safari 의 `input[type=range]` 처럼 작은 썸을 정확히 집지 않아도 되고, `rotate(-90deg)` 로 세운 슬라이더도 좌표를 변환해 동작합니다.
+- **피치 바를 두 번 두드리면 0.0% 로 초기화**(SYNC 표시도 함께 해제)
 - `touch-action:none` 으로 스크롤·확대 튐 방지, 세로 스크롤 없는 한 화면 레이아웃(1180×820 / 1024×768)
 - `pointerdown / touchstart / touchend / click / mousedown / keydown` 모든 제스처에서 **동기적으로 `AudioContext.resume()`** + 1샘플 무음 재생으로 잠금 해제
 - `navigator.audioSession.type = 'playback'`(iPadOS 16.4+)과 무음 `<audio>` 요소로 **아이패드 무음 스위치가 켜져 있어도 소리**가 납니다

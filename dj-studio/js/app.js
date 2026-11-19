@@ -5,6 +5,121 @@
   'use strict';
   const DJ = window.DJ;
 
+  /* ===========================================================
+     슬라이더 공통 처리
+     iOS Safari 의 <input type=range> 는 썸을 픽셀 단위로 정확히 잡아야만
+     반응하고, rotate(-90deg) 로 세워 둔 슬라이더나 좁은 칸 안에서는 터치가
+     아예 먹지 않는 경우가 많다. 그래서 트랙 좌표를 직접 값으로 바꾸는
+     포인터 처리를 붙인다. (기존 input 이벤트는 그대로 두어 키보드·테스트 호환)
+     =========================================================== */
+  const THUMB_SM = 20;
+  const THUMB_X = 24;
+  const THUMB_Y = 26;
+
+  function sliderGeom(el) {
+    const rect = el.getBoundingClientRect();
+    const vertical = el.classList.contains('vrange'); // vwrap 안에서 rotate(-90deg)
+    const len = vertical ? rect.height : rect.width;
+    const cls = el.className || '';
+    const thumb = cls.indexOf('hrange--sm') >= 0 ? THUMB_SM : cls.indexOf('hrange') >= 0 ? THUMB_X : THUMB_Y;
+    // 썸 반지름만큼은 트랙 양끝에서 값이 고정된다(썸을 잡아도 값이 튀지 않게)
+    const inset = Math.min(thumb / 2, len * 0.25);
+    return { rect, vertical, len, inset };
+  }
+
+  function sliderValueAt(el, cx, cy) {
+    const g = sliderGeom(el);
+    const span = Math.max(1, g.len - g.inset * 2);
+    let frac = g.vertical
+      ? (g.rect.bottom - g.inset - cy) / span // 위로 갈수록 값이 커진다
+      : (cx - g.rect.left - g.inset) / span;
+    frac = Math.min(1, Math.max(0, frac));
+    const min = parseFloat(el.min || '0');
+    const max = parseFloat(el.max || '100');
+    const step = parseFloat(el.step || '0');
+    let v = min + frac * (max - min);
+    if (step > 0) {
+      v = Math.round(v / step) * step;
+      const digits = (String(step).split('.')[1] || '').length;
+      v = +v.toFixed(digits);
+    }
+    return Math.min(max, Math.max(min, v));
+  }
+
+  /* opts.onDoubleTap: 두 번 두드렸을 때(기본 동작 대신) 실행 */
+  function wireSlider(el, opts) {
+    if (!el || el.__djSlider) return el;
+    el.__djSlider = true;
+    opts = opts || {};
+    let dragging = false;
+    let pid = null;
+    let lastTap = 0;
+
+    const apply = (x, y) => {
+      const v = sliderValueAt(el, x, y);
+      if (String(el.value) !== String(v)) el.value = String(v);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    const begin = (x, y, id) => {
+      const now = performance.now();
+      if (opts.onDoubleTap && now - lastTap < 320) {
+        lastTap = 0;
+        dragging = false;
+        opts.onDoubleTap();
+        return;
+      }
+      lastTap = now;
+      pid = id;
+      dragging = true;
+      apply(x, y);
+    };
+
+    const finish = () => { dragging = false; pid = null; };
+
+    if (window.PointerEvent) {
+      el.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        e.preventDefault();
+        try { el.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+        // preventDefault 로 잃은 포커스를 되살려 키보드 조작도 유지
+        try { el.focus({ preventScroll: true }); } catch (err) { /* noop */ }
+        begin(e.clientX, e.clientY, e.pointerId);
+      });
+      el.addEventListener('pointermove', (e) => {
+        if (!dragging || (pid !== null && e.pointerId !== pid)) return;
+        e.preventDefault();
+        apply(e.clientX, e.clientY);
+      });
+      const end = (e) => {
+        try { el.releasePointerCapture(e.pointerId); } catch (err) { /* noop */ }
+        finish();
+      };
+      el.addEventListener('pointerup', end);
+      el.addEventListener('pointercancel', end);
+    } else {
+      /* PointerEvent 가 없는 구형 WebKit */
+      el.addEventListener('touchstart', (e) => {
+        const t = e.changedTouches[0];
+        if (!t) return;
+        e.preventDefault();
+        begin(t.clientX, t.clientY, t.identifier);
+      }, { passive: false });
+      el.addEventListener('touchmove', (e) => {
+        const t = e.changedTouches[0];
+        if (!dragging || !t) return;
+        e.preventDefault();
+        apply(t.clientX, t.clientY);
+      }, { passive: false });
+      el.addEventListener('touchend', finish);
+      el.addEventListener('touchcancel', finish);
+    }
+    return el;
+  }
+
+  DJ.wireSlider = wireSlider;
+  DJ.sliderValueAt = sliderValueAt;
+
   class App {
     constructor() {
       this.errors = [];
@@ -80,6 +195,11 @@
       this.els.master.style.setProperty('--fill', this.els.master.value + '%');
 
       this.els.xf.addEventListener('input', () => this._applyCrossfade(+this.els.xf.value));
+
+      /* 세로 페이더·크로스페이더·패드 볼륨도 포인터로 직접 끌 수 있게 */
+      DJ.wireSlider(this.els.master);
+      DJ.wireSlider(this.els.xf);
+      DJ.wireSlider(this.pads.ui.vol);
 
       document.querySelector('[data-act="resetfx"]').addEventListener('click', () => {
         this.decks.A.resetFx();
@@ -391,7 +511,7 @@
     _installTestApi() {
       const self = this;
       window.__DJ = {
-        version: '1.1.1',
+        version: '1.1.2',
         get errors() { return self.errors; },
         deck(id) { return self.decks[id.toUpperCase()].state(); },
         pads() { return self.pads.snapshot(); },

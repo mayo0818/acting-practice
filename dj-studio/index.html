@@ -14,7 +14,7 @@
 <link rel="manifest" href='data:application/manifest+json,{"name":"DJ %EC%8A%A4%ED%8A%9C%EB%94%94%EC%98%A4","short_name":"DJ","display":"fullscreen","orientation":"landscape","background_color":"%2307080c","theme_color":"%2307080c","start_url":"./","icons":[]}'>
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMGIwZDE0Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIyZDNlZSIgc3Ryb2tlLXdpZHRoPSIxMSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjM0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNDcyYjYiIHN0cm9rZS13aWR0aD0iNyIgb3BhY2l0eT0iMC44NSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjEyIiBmaWxsPSIjYTNlNjM1Ii8+PGcgZmlsbD0iI2EzZTYzNSIgb3BhY2l0eT0iMC45Ij48cmVjdCB4PSIzMCIgeT0iMTQwIiB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHJ4PSI0Ii8+PHJlY3QgeD0iNTQiIHk9IjE0MCIgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiByeD0iNCIvPjxyZWN0IHg9IjExMiIgeT0iMTQwIiB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHJ4PSI0Ii8+PHJlY3QgeD0iMTM2IiB5PSIxNDAiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgcng9IjQiLz48L2c+PC9zdmc+">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMGIwZDE0Ii8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIyZDNlZSIgc3Ryb2tlLXdpZHRoPSIxMSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjM0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNDcyYjYiIHN0cm9rZS13aWR0aD0iNyIgb3BhY2l0eT0iMC44NSIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iOTAiIHI9IjEyIiBmaWxsPSIjYTNlNjM1Ii8+PC9zdmc+">
-<link rel="stylesheet" href="css/styles.css?v=1.1.1">
+<link rel="stylesheet" href="css/styles.css?v=1.1.2">
 </head>
 <body>
 <div class="app">
@@ -102,7 +102,7 @@
         <li><b>파형</b> 손가락으로 문지르면 그 위치로 이동</li>
         <li><b>조그휠</b> 드래그로 스크래치 · 재생 중 자동 회전</li>
         <li><b>핫큐</b> 한 번=저장, 다시=점프, 길게=삭제</li>
-        <li><b>SYNC</b> 다른 데크 BPM에 속도·박자 맞춤 · 다시 누르면 해제</li>
+        <li><b>피치</b> 짚어서 끌기 · 두 번 두드리면 0.0% · <b>SYNC</b> 다시 누르면 해제</li>
         <li><b>단축키</b> 패드 1234/QWER/ASDF/ZXCV · Space(A) Enter(B)</li>
         <li><b>홈 화면</b> Safari 공유 → 홈 화면에 추가</li>
       </ul>
@@ -130,7 +130,8 @@
         <li><b>CUE</b> — 재생 중 누르면 큐 지점으로 돌아가 멈추고, 멈춰 있으면 큐 지점부터 재생합니다. 큐가 없으면 지금 위치를 큐로 저장합니다.</li>
         <li><b>핫큐 1~4</b> — 한 번 누르면 지금 위치 저장, 다시 누르면 그 지점으로 점프, 길게 누르면 삭제.</li>
         <li><b>루프 1/2/4/8박</b> — 지금 위치부터 그 박자만큼 반복합니다. 같은 버튼을 다시 누르면 해제.</li>
-        <li><b>피치 ±16%</b> — 슬라이더로 속도(과 음정)를 바꿉니다. <b>SYNC</b>는 반대편 데크 BPM에 속도와 박자를 맞추고, <b>SYNC를 다시 누르면 해제</b>되어 원래 속도(0.0%)로 돌아갑니다. 피치 슬라이더를 직접 움직여도 SYNC은 풀립니다.</li>
+        <li><b>피치 ±16%</b> — 슬라이더로 속도(과 음정)를 바꿉니다. <b>SYNC</b>는 반대편 데크 BPM에 속도와 박자를 맞추고, <b>SYNC를 다시 누르면 해제</b>되어 원래 속도(0.0%)로 돌아갑니다. 피치 슬라이더를 직접 움직여도 SYNC은 풀립니다. <b>피치 바를 두 번 두드리면 0.0%로 초기화</b>됩니다.</li>
+        <li><b>페이더·슬라이더</b> — 피치 바·채널 볼륨·EQ·마스터·크로스페이더·패드 볼륨 모두 <b>손가락으로 트랙 아무 곳이나 짚어도 그 자리로 바로 움직입니다</b>(작은 손잡이를 정확히 집지 않아도 됨).</li>
         <li><b>EQ LOW/MID/HIGH · 필터</b> — 필터 노브는 왼쪽이 로우패스(LPF), 오른쪽이 하이패스(HPF)입니다. 두 번 두드리면 중앙으로 돌아갑니다.</li>
       </ul>
       <h3>4. 런치패드</h3>
@@ -140,16 +141,16 @@
       <p>Safari의 공유 버튼 → <b>홈 화면에 추가</b>를 하면 주소창 없이 전체 화면 앱처럼 열립니다. 인터넷 연결 없이도 동작합니다.</p>
       <h3>단축키</h3>
       <p>패드 <b>1 2 3 4 / Q W E R / A S D F / Z X C V</b> · 데크 A 재생 <b>Space</b> · 데크 B 재생 <b>Enter</b> · 크로스페이더 <b>← →</b></p>
-      <p class="modal__ver">v1.1.1 · SYNC 다시 누르면 해제(원래 속도 복귀)</p>
+      <p class="modal__ver">v1.1.2 · 피치·페이더 터치 조작 수정 · SYNC 다시 누르면 해제</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/audio-engine.js?v=1.1.1"></script>
-<script src="js/deck.js?v=1.1.1"></script>
-<script src="js/pads.js?v=1.1.1"></script>
-<script src="js/app.js?v=1.1.1"></script>
+<script src="js/audio-engine.js?v=1.1.2"></script>
+<script src="js/deck.js?v=1.1.2"></script>
+<script src="js/pads.js?v=1.1.2"></script>
+<script src="js/app.js?v=1.1.2"></script>
 </body>
 </html>

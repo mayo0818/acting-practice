@@ -117,7 +117,7 @@
           </div>
           <div class="pitchbox">
             <span class="pitchbox__label">피치 ±16%</span>
-            <div class="hwraph"><input class="hrange hrange--bi" type="range" min="-16" max="16" step="0.1" value="0" data-el="pitch" aria-label="피치"></div>
+            <div class="hwraph"><input class="hrange hrange--bi" type="range" min="-16" max="16" step="0.1" value="0" data-el="pitchfader" aria-label="피치"></div>
             <span class="pitchbox__val" data-el="pitchval">0.0%</span>
           </div>
           <div class="volbox">
@@ -135,6 +135,7 @@
         time: q('[data-el="time"]'),
         bpmEl: q('[data-el="bpm"]'),
         pitchEl: q('[data-el="pitch"]'),
+        pitchFader: q('[data-el="pitchfader"]'),
         file: q('[data-el="file"]'),
         wave: q('[data-el="wave"]'),
         empty: q('[data-el="empty"]'),
@@ -143,7 +144,6 @@
         playIcon: q('[data-el="playicon"]'),
         knob: q('[data-el="knob"]'),
         filterVal: q('[data-el="filterval"]'),
-        pitch: q('[data-el="pitch"]'),
         pitchVal: q('[data-el="pitchval"]'),
         vol: q('[data-el="vol"]'),
         volVal: q('[data-el="volval"]'),
@@ -267,11 +267,22 @@
         el.addEventListener('input', apply);
       });
 
-      this.els.pitch.addEventListener('input', () => {
-        this.setPitch(+this.els.pitch.value);
+      /* 피치 페이더: 손가락으로 트랙 어디든 잡아 끌기 + 두 번 두드리면 0.0% 초기화 */
+      DJ.wireSlider(this.els.pitchFader, {
+        onDoubleTap: () => {
+          this.setPitch(0);
+          this.els.syncBtn.classList.remove('is-on');
+          this.app.toast(`DECK ${this.id} 피치 0.0%로 초기화 · SYNC 해제`);
+        },
+      });
+      this.els.pitchFader.addEventListener('input', () => {
+        this.setPitch(+this.els.pitchFader.value);
         /* 손으로 속도를 바꾸면 SYNC 상태가 아니게 된다 */
         this.els.syncBtn.classList.remove('is-on');
       });
+      /* 채널 볼륨·EQ 페이더도 포인터로 직접 */
+      DJ.wireSlider(this.els.vol);
+      Object.keys(this.eqInputs).forEach((band) => DJ.wireSlider(this.eqInputs[band]));
       this.els.vol.addEventListener('input', () => this.setVolume(+this.els.vol.value / 100));
 
       /* 파형 스크러빙 */
@@ -584,7 +595,8 @@
     }
 
     setPitch(pct) {
-      pct = DJ.clamp(pct, -16, 16);
+      /* 슬라이더 step(0.1%)에 맞춰 반올림 — 손잡이 위치·표시·상태값을 일치시킨다 */
+      pct = Math.round(DJ.clamp(pct, -16, 16) * 10) / 10;
       if (this.playing) {
         this.offset = this.position();
         this.startedAt = this.t;
@@ -592,9 +604,9 @@
       this.pitch = pct;
       this.rate = 1 + pct / 100;
       if (this._voice) this._voice.src.playbackRate.setTargetAtTime(this.rate, this.t, 0.01);
-      this.els.pitch.value = String(pct);
+      this.els.pitchFader.value = String(pct);
       this.els.pitchVal.textContent = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
-      this._fill(this.els.pitch, ((pct + 16) / 32) * 100, 50);
+      this._fill(this.els.pitchFader, ((pct + 16) / 32) * 100, 50);
       this._syncMetaUI();
     }
 

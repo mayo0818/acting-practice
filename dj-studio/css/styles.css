@@ -272,7 +272,7 @@ button{font-family:inherit;color:inherit}
   -webkit-appearance:none;appearance:none;
   width:82px;height:40px;
   background:transparent;margin:0;padding:0;
-  touch-action:none;
+  touch-action:none;cursor:pointer;
 }
 .vrange::-webkit-slider-runnable-track{
   height:10px;border-radius:99px;
@@ -307,14 +307,15 @@ button{font-family:inherit;color:inherit}
 
 .pitchbox{display:flex;flex-direction:column;align-items:stretch;gap:2px;justify-self:stretch;grid-column:3;min-width:0;padding:0 6px}
 .pitchbox__label{font-size:9.5px;font-weight:800;color:var(--dim2);font-family:var(--mono);text-align:center}
-.pitchbox .hwraph{position:relative;width:100%;min-width:74px;height:26px;display:flex;align-items:center}
+.pitchbox .hwraph{position:relative;width:100%;min-width:96px;height:34px;display:flex;align-items:center;touch-action:none}
+.pitchbox .hrange{height:34px;cursor:pointer}
 .pitchbox__val{font-size:9.5px;font-family:var(--mono);color:var(--dim);text-align:center}
 
 /* horizontal range */
 .hrange{
   -webkit-appearance:none;appearance:none;
   width:100%;height:26px;background:transparent;margin:0;padding:0;
-  touch-action:none;
+  touch-action:none;cursor:pointer;
 }
 .hrange::-webkit-slider-runnable-track{
   height:8px;border-radius:99px;

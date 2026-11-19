@@ -1,0 +1,389 @@
+/* ===========================================================
+   app.js — 화면 배선, 믹서·VU·크로스페이더, 오디오 잠금 해제, 단축키
+   =========================================================== */
+(function () {
+  'use strict';
+  const DJ = window.DJ;
+
+  class App {
+    constructor() {
+      this.errors = [];
+      window.addEventListener('error', (e) => {
+        this.errors.push(String((e && e.message) || e));
+      });
+      window.addEventListener('unhandledrejection', (e) => {
+        this.errors.push('unhandledrejection: ' + String((e && e.reason && e.reason.message) || (e && e.reason)));
+      });
+
+      this.audio = new DJ.AudioEngine();
+      this.audio.ensure();
+      DJ.lib = { noise: this.audio.noiseBuf, dist: this.audio._dist };
+
+      this._cacheEls();
+      this._paintAudio(this.audio.unlocked);
+      this.decks = {
+        A: new DJ.Deck(this, 'A', document.querySelector('.deck[data-deck="A"]')),
+        B: new DJ.Deck(this, 'B', document.querySelector('.deck[data-deck="B"]')),
+      };
+      this.pads = new DJ.PadBank(this, document.getElementById('padgrid'), {
+        mode: document.getElementById('padMode'),
+        modeDesc: document.querySelector('[data-el="modedesc"]'),
+        assignBtn: document.querySelector('[data-act="padassign"]'),
+        clearBtn: document.querySelector('[data-act="padclear"]'),
+        file: document.querySelector('[data-el="padfile"]'),
+        selName: document.querySelector('[data-el="padselName"]'),
+        selTag: document.querySelector('[data-el="padselTag"]'),
+        vol: document.querySelector('[data-el="padvol"]'),
+        volVal: document.querySelector('[data-el="padvolval"]'),
+      });
+
+      this._wireMixer();
+      this._wireGlobal();
+      this._fitFaders();
+      this._applyCrossfade(50);
+      this.decks.A.setVolume(0.85);
+      this.decks.B.setVolume(0.85);
+      this.audio.setPadVolume(+document.querySelector('[data-el="padvol"]').value / 100);
+      this.audio.setMaster(+this.els.master.value / 100);
+
+      this._lastT = performance.now();
+      this._vuLast = 0;
+      this._loop = this._loop.bind(this);
+      requestAnimationFrame(() => this._fitFaders());
+      requestAnimationFrame(this._loop);
+      this._installTestApi();
+      document.body.dataset.ready = '1';
+    }
+
+    _cacheEls() {
+      const q = (s) => document.querySelector(s);
+      this.els = {
+        audioBadge: q('#audioBadge'),
+        audioText: q('#audioText'),
+        master: q('[data-el="master"]'),
+        masterVal: q('[data-el="masterval"]'),
+        xf: q('[data-el="xf"]'),
+        vu: q('[data-el="vu"]'),
+        masterBpm: q('[data-el="masterbpm"]'),
+        helpModal: q('#helpModal'),
+        toast: q('#toast'),
+      };
+    }
+
+    _wireMixer() {
+      this.els.master.addEventListener('input', () => {
+        const v = +this.els.master.value;
+        this.els.masterVal.textContent = v;
+        this.els.master.style.setProperty('--fill', v + '%');
+        this.audio.setMaster(v / 100);
+      });
+      this.els.master.style.setProperty('--fill', this.els.master.value + '%');
+
+      this.els.xf.addEventListener('input', () => this._applyCrossfade(+this.els.xf.value));
+
+      document.querySelector('[data-act="resetfx"]').addEventListener('click', () => {
+        this.decks.A.resetFx();
+        this.decks.B.resetFx();
+        this.toast('EQ · 필터 · 피치 초기화');
+      });
+      document.querySelector('[data-act="stopall"]').addEventListener('click', () => {
+        this.decks.A.stop();
+        this.decks.B.stop();
+        this.toast('두 데크 정지');
+      });
+    }
+
+    _applyCrossfade(v) {
+      const x = DJ.clamp(v, 0, 100) / 100;
+      const ga = Math.cos(x * Math.PI * 0.5);
+      const gb = Math.sin(x * Math.PI * 0.5);
+      this.decks.A.setCrossfade(ga);
+      this.decks.B.setCrossfade(gb);
+      this.els.xf.style.setProperty('--fill', v + '%');
+      this.xfValue = v;
+    }
+
+    _wireGlobal() {
+      /* iOS 오디오 잠금 해제: 첫 터치 */
+      const unlock = async () => {
+        const ok = await this.audio.unlock();
+        if (ok) this._paintAudio(true);
+      };
+      document.addEventListener('pointerdown', () => {
+        if (!this.audio.unlocked) unlock();
+      }, { capture: true, passive: true });
+      this.els.audioBadge.addEventListener('click', unlock);
+      window.addEventListener('dj:audio-state', () => this._paintAudio(this.audio.ctx && this.audio.ctx.state === 'running'));
+
+      /* 도움말 */
+      const open = () => { this.els.helpModal.hidden = false; };
+      const close = () => { this.els.helpModal.hidden = true; };
+      document.getElementById('helpBtn').addEventListener('click', open);
+      document.getElementById('helpClose').addEventListener('click', close);
+      this.els.helpModal.addEventListener('click', (e) => {
+        if (e.target === this.els.helpModal) close();
+      });
+
+      /* 전체화면 */
+      document.getElementById('fsBtn').addEventListener('click', async () => {
+        try {
+          if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+          else await document.exitFullscreen();
+        } catch (e) {
+          this.toast('이 브라우저에서는 전체화면을 지원하지 않아요');
+        }
+      });
+
+      /* 키보드 */
+      const keyMap = {};
+      this.pads.pads.forEach((p) => { keyMap[p.key] = p.index; });
+      const down = new Set();
+      window.addEventListener('keydown', (e) => {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const k = e.key.toLowerCase();
+        if (k === ' ') { e.preventDefault(); this.decks.A.toggle(); return; }
+        if (k === 'enter') { e.preventDefault(); this.decks.B.toggle(); return; }
+        if (k === 'arrowleft' || k === 'arrowright') {
+          e.preventDefault();
+          const step = k === 'arrowleft' ? -4 : 4;
+          this.els.xf.value = String(DJ.clamp(+this.els.xf.value + step, 0, 100));
+          this._applyCrossfade(+this.els.xf.value);
+          return;
+        }
+        if (keyMap[k] != null && !down.has(k)) {
+          down.add(k);
+          const i = keyMap[k];
+          this.pads.select(i);
+          this.pads._down(i);
+        }
+      });
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (keyMap[k] != null) {
+          down.delete(k);
+          this.pads._up(keyMap[k]);
+        }
+      });
+
+      window.addEventListener('blur', () => {
+        down.clear();
+        this.pads.pads.forEach((p) => this.pads._up(p.index));
+      });
+
+      /* 앱을 벗어났다 돌아오면 오디오 다시 깨우기 */
+      document.addEventListener('visibilitychange', () => {
+        const ctx = this.audio.ctx;
+        if (!document.hidden && ctx && ctx.state === 'suspended') {
+          ctx.resume().catch(() => {});
+        }
+      });
+
+      /* 화면 회전/크기 변경 */
+      window.addEventListener('resize', () => {
+        this._fitFaders();
+        this.decks.A._buildWaveCache();
+        this.decks.B._buildWaveCache();
+      });
+    }
+
+    /* 세로형(회전) 슬라이더: 레이아웃 상자와 무관하게 실제 높이에 맞춰 폭을 맞춤 */
+    _fitFaders() {
+      document.querySelectorAll('.vwrap').forEach((w) => {
+        const inp = w.querySelector('input');
+        if (!inp) return;
+        const h = w.clientHeight;
+        if (!h) return;
+        const th = Math.max(30, Math.min(40, w.clientWidth + 6));
+        inp.style.width = h + 'px';
+        inp.style.height = th + 'px';
+        inp.style.marginLeft = h / -2 + 'px';
+        inp.style.marginTop = th / -2 + 'px';
+      });
+    }
+
+    _paintAudio(on) {
+      this.els.audioBadge.classList.toggle('is-live', !!on);
+      this.els.audioText.textContent = on ? '오디오 켜짐' : '탭해서 오디오 켜기';
+    }
+
+    sync(target) {
+      const other = target === this.decks.A ? this.decks.B : this.decks.A;
+      if (!target.buffer || !other.buffer || !target.bpm || !other.bpm) {
+        this.toast('두 데크에 곡을 불러와야 SYNC할 수 있어요');
+        return;
+      }
+      const targetBpm = other.effectiveBpm();
+      let rate = targetBpm / target.bpm;
+      const clamped = DJ.clamp(rate, 0.84, 1.16);
+      target.setPitch((clamped - 1) * 100);
+      target._syncMetaUI();
+
+      // 박자 위상 맞추기
+      const beatB = 60 / target.effectiveBpm();
+      const beatA = 60 / other.effectiveBpm();
+      const phaseA = ((other.position() / beatA) % 1 + 1) % 1;
+      const cur = ((target.position() / beatB) % 1 + 1) % 1;
+      let delta = phaseA - cur;
+      if (delta > 0.5) delta -= 1;
+      if (delta < -0.5) delta += 1;
+      const np = DJ.clamp(target.position() + delta * beatB, 0, target.duration);
+      if (target.playing) target._start(np);
+      else target.offset = np;
+
+      target.els.syncBtn.classList.add('is-on');
+      setTimeout(() => target.els.syncBtn.classList.remove('is-on'), 700);
+      this.toast(`DECK ${target.id} SYNC → ${target.effectiveBpm().toFixed(1)} BPM`);
+    }
+
+    toast(msg) {
+      const el = this.els.toast;
+      el.textContent = msg;
+      el.classList.add('is-on');
+      clearTimeout(this._toastTimer);
+      this._toastTimer = setTimeout(() => el.classList.remove('is-on'), 1800);
+    }
+
+    /* ---------------- VU ---------------- */
+    drawVU() {
+      const cv = this.els.vu;
+      if (!cv || !cv.clientWidth) return;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const w = cv.clientWidth, h = cv.clientHeight;
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+        cv.width = Math.round(w * dpr);
+        cv.height = Math.round(h * dpr);
+      }
+      const ctx = cv.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const lv = this.audio.levels();
+      const segs = 22;
+      const gap = 2;
+      const barW = Math.max(8, (w - 12 - 6) / 2);
+      const segH = (h - (segs - 1) * gap) / segs;
+
+      const frac = (v) => {
+        const db = 20 * Math.log10(Math.max(v, 1e-6));
+        return DJ.clamp((db + 46) / 46, 0, 1);
+      };
+      const colorFor = (i, n) => {
+        const t = i / (n - 1);
+        if (t > 0.86) return '#fb7185';
+        if (t > 0.66) return '#fbbf24';
+        return '#4ade80';
+      };
+
+      const drawBar = (x, value, peak) => {
+        const f = frac(value);
+        const lit = Math.round(f * segs);
+        for (let i = 0; i < segs; i++) {
+          const y = h - (i + 1) * segH - i * gap;
+          const on = i < lit;
+          ctx.fillStyle = on ? colorFor(i, segs) : 'rgba(255,255,255,.055)';
+          ctx.globalAlpha = on ? 0.92 : 1;
+          const r = Math.min(2, segH / 2);
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(x, y, barW, segH, r);
+          else ctx.rect(x, y, barW, segH);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        const pf = frac(peak);
+        if (pf > 0.02) {
+          const y = h - pf * h;
+          ctx.fillStyle = pf > 0.9 ? '#fb7185' : pf > 0.72 ? '#fbbf24' : '#d9f99d';
+          ctx.fillRect(x, Math.max(0, y - 1), barW, 1.5);
+        }
+      };
+
+      drawBar(6, lv.l, lv.peakL);
+      drawBar(6 + barW + 6, lv.r, lv.peakR);
+    }
+
+    /* ---------------- main loop ---------------- */
+    _loop(now) {
+      const dt = Math.min(0.05, (now - this._lastT) / 1000) || 0.016;
+      this._lastT = now;
+
+      this.decks.A.update(dt);
+      this.decks.B.update(dt);
+
+      if (now - this._vuLast > 33) {
+        this._vuLast = now;
+        this.drawVU();
+      }
+
+      const ba = this.decks.A.effectiveBpm();
+      const bb = this.decks.B.effectiveBpm();
+      const shown = this.decks.A.playing && ba ? ba : bb || ba;
+      const txt = shown ? shown.toFixed(1) : '—';
+      if (this.els.masterBpm.textContent !== txt) this.els.masterBpm.textContent = txt;
+
+      requestAnimationFrame(this._loop);
+    }
+
+    _installTestApi() {
+      const self = this;
+      window.__DJ = {
+        version: '1.0.0',
+        get errors() { return self.errors; },
+        deck(id) { return self.decks[id.toUpperCase()].state(); },
+        pads() { return self.pads.snapshot(); },
+        audio() {
+          const c = self.audio.ctx;
+          return {
+            state: c ? c.state : 'none',
+            unlocked: self.audio.unlocked,
+            sampleRate: c ? c.sampleRate : 0,
+            master: c ? self.audio.masterGain.gain.value : 0,
+            padVolume: c ? self.audio.padBus.gain.value : 0,
+          };
+        },
+        level() {
+          const lv = self.audio.levels();
+          return { l: lv.l, r: lv.r, peakL: lv.peakL, peakR: lv.peakR };
+        },
+        mixer() {
+          return {
+            crossfade: +self.els.xf.value,
+            master: +self.els.master.value,
+            aGain: self.decks.A.xfGain.gain.value,
+            bGain: self.decks.B.xfGain.gain.value,
+          };
+        },
+        layout() {
+          const r = (el) => {
+            const b = el.getBoundingClientRect();
+            return { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) };
+          };
+          return {
+            vw: window.innerWidth,
+            vh: window.innerHeight,
+            scrollW: document.documentElement.scrollWidth,
+            scrollH: document.documentElement.scrollHeight,
+            pads: [...document.querySelectorAll('[data-pad]')].map(r),
+            deckA: r(document.querySelector('.deck[data-deck="A"]')),
+            deckB: r(document.querySelector('.deck[data-deck="B"]')),
+            mixer: r(document.querySelector('.mixer')),
+            waveA: r(document.querySelector('.deck[data-deck="A"] .wave')),
+          };
+        },
+      };
+    }
+  }
+
+  function boot() {
+    try {
+      window.__app = new App();
+    } catch (err) {
+      document.body.innerHTML =
+        '<div style="padding:24px;font:14px/1.6 -apple-system,sans-serif;color:#fff">' +
+        '앱을 시작하지 못했습니다.<br><small style="color:#888">' + String(err) + '</small></div>';
+      throw err;
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();

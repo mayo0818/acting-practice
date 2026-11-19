@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>스튜디오 여백 | 부산 인물·브랜드 사진 촬영</title>
+<meta name="description" content="부산 수영구의 1인 사진 스튜디오입니다. 프로필, 가족, 브랜드 제품 사진을 찍습니다. 요금과 촬영 절차, 견적 문의를 안내합니다.">
+<meta name="theme-color" content="#f7f7f5">
+<link rel="canonical" href="./index.html">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="스튜디오 여백">
+<meta property="og:title" content="스튜디오 여백 | 부산 인물·브랜드 사진 촬영">
+<meta property="og:description" content="프로필, 가족, 브랜드 제품 사진. 하루 두 건만 촬영합니다.">
+<meta property="og:image" content="assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="assets/og.jpg">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23111'/%3E%3Crect x='11' y='11' width='10' height='10' fill='none' stroke='%23f7f7f5' stroke-width='1.5'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+<style>
+:root{
+  --bg:#f7f7f5;
+  --bg-2:#efefec;
+  --ink:#141414;
+  --ink-2:#6c6c69;
+  --line:#dededa;
+  --line-2:#c9c9c4;
+  --sans:'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --wrap:1200px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.7;
+  letter-spacing:-0.01em; -webkit-font-smoothing:antialiased;
+}
+img{display:block; max-width:100%; height:auto}
+a{color:inherit; text-decoration:none}
+:focus-visible{outline:2px solid var(--ink); outline-offset:3px}
+.wrap{max-width:var(--wrap); margin:0 auto; padding:0 28px}
+.skip{position:absolute; left:-9999px}
+.skip:focus{left:16px; top:12px; z-index:100; background:var(--ink); color:#fff; padding:10px 14px}
+
+/* header */
+.site-header{position:sticky; top:0; z-index:40; background:rgba(247,247,245,.95); border-bottom:1px solid var(--line)}
+.header-inner{display:flex; align-items:center; justify-content:space-between; height:74px; gap:20px}
+.brand{display:flex; align-items:baseline; gap:10px}
+.brand b{font-size:16px; font-weight:600; letter-spacing:.14em}
+.brand span{font-size:10.5px; letter-spacing:.24em; color:var(--ink-2)}
+.nav{display:flex; gap:34px; font-size:13.5px; letter-spacing:.01em}
+.nav a{color:var(--ink-2); padding:6px 0; border-bottom:1px solid transparent}
+.nav a:hover,.nav a.on{color:var(--ink); border-color:var(--ink)}
+.h-link{font-size:13px; border:1px solid var(--ink); padding:9px 18px}
+.h-link:hover{background:var(--ink); color:var(--bg)}
+.menu-btn{display:none; width:40px; height:40px; border:0; background:none; cursor:pointer; padding:0}
+.menu-btn i{display:block; width:20px; height:1.5px; background:var(--ink); margin:4.5px auto}
+.mobile-nav{display:none; border-top:1px solid var(--line)}
+.mobile-nav a{display:block; padding:15px 28px; border-bottom:1px solid var(--line); font-size:15px}
+
+/* hero */
+.hero{padding:64px 0 0}
+.hero-grid{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:end; padding-bottom:56px}
+.hero-copy{padding-bottom:12px}
+.hero-copy .eyebrow{font-size:11px; letter-spacing:.22em; color:var(--ink-2); margin:0 0 26px}
+.hero-copy h1{font-size:clamp(32px,4.4vw,54px); line-height:1.28; letter-spacing:-.045em; font-weight:600; margin:0 0 26px}
+.hero-copy p{font-size:15px; color:var(--ink-2); margin:0 0 30px; max-width:26em; line-height:1.8}
+.hero-meta{display:flex; gap:44px; border-top:1px solid var(--line); padding-top:20px; font-size:13px; color:var(--ink-2)}
+.hero-meta b{display:block; color:var(--ink); font-weight:500; font-size:13.5px; margin-bottom:2px}
+.hero-shot{margin:0}
+.hero-shot img{width:100%; aspect-ratio:4/5; object-fit:cover; filter:grayscale(1) contrast(1.02)}
+.hero-shot figcaption{font-size:12px; color:var(--ink-2); padding-top:10px; display:flex; justify-content:space-between; gap:12px}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; height:50px; padding:0 28px; font-size:14px; border:1px solid var(--ink); letter-spacing:-.01em}
+.btn-fill{background:var(--ink); color:var(--bg)}
+.btn-fill:hover{background:#000}
+.btn-line:hover{background:var(--ink); color:var(--bg)}
+
+/* sections */
+.section{padding:110px 0}
+.section.rule{border-top:1px solid var(--line)}
+.sec-head{display:block; margin-bottom:52px; max-width:46em}
+.sec-head .en{display:block; font-size:11px; letter-spacing:.2em; color:var(--ink-2); margin-bottom:14px}
+.sec-head h2{font-size:clamp(21px,2.3vw,26px); line-height:1.5; letter-spacing:-.03em; margin:0; font-weight:600}
+.sec-head p{margin:14px 0 0; font-size:14.5px; color:var(--ink-2); max-width:40em}
+
+/* works */
+.works{display:grid; grid-template-columns:repeat(2,1fr); gap:36px 28px}
+.work{margin:0}
+.work a{display:block}
+.work img{width:100%; aspect-ratio:4/3; object-fit:cover; filter:grayscale(1); transition:filter .3s}
+.work:hover img{filter:grayscale(0)}
+.work figcaption{display:flex; justify-content:space-between; gap:16px; padding-top:12px; font-size:13.5px}
+.work figcaption span{color:var(--ink-2); font-size:12.5px; font-variant-numeric:tabular-nums}
+.work p{margin:5px 0 0; font-size:12.5px; color:var(--ink-2)}
+
+/* price */
+.price-tbl{width:100%; border-collapse:collapse; font-size:14.5px}
+.price-tbl th,.price-tbl td{border-top:1px solid var(--line); padding:22px 12px; text-align:left; vertical-align:top}
+.price-tbl thead th{border-top:1px solid var(--ink); padding:12px; font-size:12px; letter-spacing:.06em; color:var(--ink-2); font-weight:500}
+.price-tbl tbody th{font-weight:600; font-size:15.5px; width:26%}
+.price-tbl tbody th small{display:block; font-weight:400; color:var(--ink-2); font-size:12.5px; margin-top:4px}
+.price-tbl td.amt{font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap; width:20%}
+.price-tbl td.amt small{display:block; font-weight:400; font-size:12px; color:var(--ink-2); margin-top:3px}
+.price-tbl tbody tr:last-child td,.price-tbl tbody tr:last-child th{border-bottom:1px solid var(--line)}
+.price-note{margin:18px 0 0; font-size:13px; color:var(--ink-2); line-height:1.8}
+
+/* process + space */
+.split{display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center}
+.split img{width:100%; aspect-ratio:4/3; object-fit:cover; filter:grayscale(1)}
+.steps{list-style:none; margin:0; padding:0; border-top:1px solid var(--line)}
+.steps li{display:grid; grid-template-columns:52px 1fr; gap:8px; padding:20px 0; border-bottom:1px solid var(--line)}
+.steps li span:first-child{font-size:12px; color:var(--ink-2); font-variant-numeric:tabular-nums; padding-top:3px}
+.steps b{display:block; font-weight:600; font-size:15px; margin-bottom:4px}
+.steps p{margin:0; font-size:13.5px; color:var(--ink-2)}
+
+/* contact */
+.contact{background:var(--ink); color:#ededea}
+.contact .sec-head .en{color:#8d8d88}
+.contact .sec-head h2{color:#ededea}
+.contact .sec-head p{color:#a5a5a0}
+.contact .sec-head{border-color:#333}
+.contact-grid{display:grid; grid-template-columns:.8fr 1.2fr; gap:64px}
+.contact-info p{font-size:14px; color:#a5a5a0; margin:0 0 18px; line-height:1.8}
+.contact-info .tel{display:block; font-size:22px; font-variant-numeric:tabular-nums; letter-spacing:.02em; margin:0 0 6px; color:#ededea}
+.contact-info .hours{font-size:12.5px; color:#8d8d88; line-height:1.9}
+.form{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+.field{display:flex; flex-direction:column; gap:8px}
+.field.full,.full{grid-column:1 / -1}
+.field label{font-size:12px; color:#a5a5a0; letter-spacing:.02em}
+.field label em{font-style:normal; color:#c99a7f; margin-left:2px}
+.field input,.field select,.field textarea{
+  font:inherit; font-size:14.5px; color:#ededea; background:transparent;
+  border:0; border-bottom:1px solid #4a4a46; padding:10px 0; border-radius:0; appearance:none;
+}
+.field textarea{border:1px solid #4a4a46; padding:12px; min-height:90px; resize:vertical}
+.field input::placeholder,.field textarea::placeholder{color:#6f6f6a}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none; border-color:#ededea}
+.field select option{color:#141414}
+.check{display:flex; gap:9px; align-items:flex-start; font-size:12px; color:#a5a5a0; line-height:1.7}
+.check input{width:15px; height:15px; margin:3px 0 0; flex:none; accent-color:#ededea}
+.form-foot{display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-top:4px}
+.btn-light{background:#ededea; color:var(--ink); border-color:#ededea}
+.btn-light:hover{background:#fff; border-color:#fff}
+.form-msg{font-size:12.5px; color:#c99a7f; min-height:18px; margin:0}
+.sent{display:none; border-top:1px solid #4a4a46; padding-top:22px; font-size:14px; color:#ededea}
+.sent.on{display:block}
+
+/* footer */
+.footer{border-top:1px solid var(--line); padding:48px 0 40px; font-size:12.5px; color:var(--ink-2); line-height:1.9}
+.footer-top{display:flex; justify-content:space-between; gap:32px; flex-wrap:wrap; margin-bottom:26px}
+.footer b.fl{display:block; color:var(--ink); font-size:14px; letter-spacing:.12em; margin-bottom:8px; font-weight:600}
+.footer .links{display:flex; gap:16px; flex-wrap:wrap}
+.footer .links a:hover{color:var(--ink); text-decoration:underline}
+.copyright{border-top:1px solid var(--line); padding-top:18px; margin:0; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap}
+
+.callbar{display:none}
+
+@media (max-width:1000px){
+  .hero-grid{grid-template-columns:1fr; gap:32px; align-items:start}
+  .hero-copy h1{font-size:34px}
+  .split,.contact-grid{grid-template-columns:1fr; gap:36px}
+  .sec-head{grid-template-columns:1fr; gap:12px; margin-bottom:34px}
+  .section{padding:72px 0}
+  .hero{padding-top:44px}
+  .price-tbl tbody th{width:34%}
+}
+@media (max-width:760px){
+  .wrap{padding:0 20px}
+  .nav,.h-link{display:none}
+  .menu-btn{display:block}
+  .menu-open .mobile-nav{display:block}
+  .header-inner{height:60px}
+  .brand b{font-size:14.5px; letter-spacing:.1em}
+  .hero-copy h1{font-size:29px}
+  .hero-copy p{font-size:14.5px}
+  .hero-meta{gap:26px; flex-wrap:wrap}
+  .works{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+  .price-tbl{font-size:13.5px}
+  .price-tbl thead{display:none}
+  .price-tbl, .price-tbl tbody, .price-tbl tr, .price-tbl th, .price-tbl td{display:block; width:auto}
+  .price-tbl tr{border-top:1px solid var(--line); padding:20px 0}
+  .price-tbl tbody th{border:0; padding:0 0 8px}
+  .price-tbl td{border:0; padding:0 0 6px}
+  .price-tbl tbody tr:last-child td,.price-tbl tbody tr:last-child th{border-bottom:0}
+  .callbar{display:flex; position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--bg); border-top:1px solid var(--line)}
+  .callbar a{flex:1; text-align:center; padding:15px 0 16px; font-size:13.5px}
+  .callbar a + a{border-left:1px solid var(--line); background:var(--ink); color:var(--bg)}
+  body{padding-bottom:51px}
+}
+@media (max-width:430px){
+  .hero-meta{font-size:12.5px}
+  .hero-copy h1{font-size:26px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 바로 가기</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top" aria-label="스튜디오 여백 홈">
+      <b>스튜디오 여백</b><span>YEOWON STUDIO</span>
+    </a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="#works">작업</a>
+      <a href="#price">요금</a>
+      <a href="#process">진행 안내</a>
+      <a href="#space">작업실</a>
+    </nav>
+    <a class="h-link" href="#contact">견적 문의</a>
+    <button class="menu-btn" type="button" id="menuBtn" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNav">
+      <i></i><i></i><i></i>
+    </button>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="#works">작업</a>
+    <a href="#price">요금</a>
+    <a href="#process">진행 안내</a>
+    <a href="#space">작업실</a>
+    <a href="#contact">견적 문의</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">부산 수영구 · 인물과 브랜드 촬영</p>
+        <h1>지나치게 꾸미지 않은<br>사진을 찍습니다</h1>
+        <p>표정을 만들기보다 편하게 이야기하는 동안 찍습니다. 조명은 한쪽에서만 쓰고, 배경은 비워 두는 편입니다. 하루에 두 건까지만 촬영합니다.</p>
+        <a class="btn btn-fill" href="#contact">견적 문의하기</a>
+        <div class="hero-meta">
+          <div><b>하루 2건</b>촬영 예약제</div>
+          <div><b>5일</b>보정본 전달</div>
+          <div><b>1인 운영</b>촬영·보정 직접</div>
+        </div>
+      </div>
+      <figure class="hero-shot">
+        <img src="assets/p1.jpg" alt="흰 배경에서 촬영한 인물 프로필 사진" width="1200" height="1500" fetchpriority="high">
+        <figcaption><span>프로필 · 2026</span><span>1/125 · f2.0</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section rule" id="works">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="en">SELECTED WORK</span>
+        <div>
+          <h2>최근 작업</h2>
+          <p>촬영 종류별로 네 건을 골랐습니다. 사진 위에 마우스를 올리면 원래 색으로 보입니다.</p>
+        </div>
+      </div>
+      <div class="works">
+        <figure class="work">
+          <img src="assets/p1.jpg" alt="인물 프로필 촬영 — 흰 배경, 정면" loading="lazy" width="1200" height="900">
+          <figcaption>인물 프로필 <span>2026. 10</span></figcaption>
+          <p>지원용 프로필. 상반신 위주로 20컷 촬영, 보정 5컷.</p>
+        </figure>
+        <figure class="work">
+          <img src="assets/p2.jpg" alt="인물 프로필 촬영 — 회색 배경, 측면 조명" loading="lazy" width="1200" height="900">
+          <figcaption>인물 프로필 <span>2026. 09</span></figcaption>
+          <p>배우 프로필. 측면 조명 한 대로만 촬영했습니다.</p>
+        </figure>
+        <figure class="work">
+          <img src="assets/p3.jpg" alt="브랜드 제품 촬영 — 회색 배경 위 도자기" loading="lazy" width="1200" height="900">
+          <figcaption>브랜드 제품 <span>2026. 08</span></figcaption>
+          <p>도자기 공방의 컵과 그릇. 스마트스토어 상세용으로 납품했습니다.</p>
+        </figure>
+        <figure class="work">
+          <img src="assets/p4.jpg" alt="촬영 공간 — 배경지와 조명이 놓인 작업실" loading="lazy" width="1200" height="900">
+          <figcaption>공간 <span>2026. 07</span></figcaption>
+          <p>작업실 공간 소개용 사진. 낮 자연광만 사용했습니다.</p>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section rule" id="price">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="en">PRICING</span>
+        <div>
+          <h2>요금</h2>
+          <p>부가세 포함 금액입니다. 촬영 장소가 작업실이 아니면 출장비가 따로 붙습니다. 아래에 없는 촬영은 문의 주시면 견적을 드립니다.</p>
+        </div>
+      </div>
+      <table class="price-tbl">
+        <thead>
+          <tr><th scope="col">종류</th><th scope="col">소요 시간</th><th scope="col">포함</th><th scope="col">금액</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">프로필<small>지원·SNS·배우 프로필</small></th>
+            <td>30분</td>
+            <td>원본 20컷 중 5컷 보정, 이력서용 사이즈 포함</td>
+            <td class="amt">80,000원<small>1인 기준</small></td>
+          </tr>
+          <tr>
+            <th scope="row">가족·커플<small>작업실 또는 야외</small></th>
+            <td>60분</td>
+            <td>보정 10컷, 인화용 파일 포함</td>
+            <td class="amt">150,000원<small>4인까지 · 1인 추가 20,000원</small></td>
+          </tr>
+          <tr>
+            <th scope="row">브랜드·제품<small>스마트스토어·상세페이지용</small></th>
+            <td>1시간</td>
+            <td>제품 5종 이내, 보정 15컷, 흰 배경·연출 컷</td>
+            <td class="amt">200,000원<small>제품 5종 초과 시 협의</small></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="price-note">
+        촬영 원본은 드리지 않습니다. 보정은 피부 결와 색만 다듬고, 얼굴 형태는 고치지 않습니다.<br>
+        출장 촬영은 부산 시내 기준 30,000원이 더해집니다. 취소는 촬영 3일 전까지 무료이며, 이후에는 금액의 절반을 청구합니다.
+      </p>
+    </div>
+  </section>
+
+  <section class="section rule" id="process">
+    <div class="wrap split">
+      <div>
+        <div class="sec-head" style="margin-bottom:28px; max-width:none">
+          <span class="en">PROCESS</span>
+          <div><h2>진행 순서</h2></div>
+        </div>
+        <ol class="steps">
+          <li><span>01</span><div><b>문의</b><p>아래 양식이나 전화로 용도와 인원을 알려 주세요.</p></div></li>
+          <li><span>02</span><div><b>일정과 견적 확정</b><p>하루 안에 가능한 날짜와 금액을 회신합니다. 입금으로 예약이 확정됩니다.</p></div></li>
+          <li><span>03</span><div><b>촬영</b><p>촬영 전에 10분 정도 이야기를 나눕니다. 옷은 두 벌 정도 가져오시면 좋습니다.</p></div></li>
+          <li><span>04</span><div><b>보정본 전달</b><p>촬영 후 5일 안에 보정본을 링크로 보내드립니다. 한 번에 한해 추가 보정을 받습니다.</p></div></li>
+        </ol>
+      </div>
+      <img src="assets/p4.jpg" alt="배경지와 조명이 설치된 촬영 작업실" loading="lazy" width="1200" height="900">
+    </div>
+  </section>
+
+  <section class="section rule" id="space">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="en">STUDIO</span>
+        <div>
+          <h2>작업실</h2>
+          <p>수영구 수미로의 2층, 18평 공간입니다. 천장 높이가 3.2m라 서서 찍는 전신 사진도 가능합니다. 낮에는 창으로 들어오는 빛을 주로 쓰고, 저녁 촬영은 조명 두 대로 진행합니다.</p>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <table class="price-tbl" style="font-size:14px">
+            <tbody>
+              <tr><th scope="row">주소</th><td>부산광역시 수영구 수미로 24, 2층</td></tr>
+              <tr><th scope="row">교통</th><td>2호선 광안역 3번 출구 도보 7분</td></tr>
+              <tr><th scope="row">주차</th><td>건물 뒤편 1대</td></tr>
+              <tr><th scope="row">운영</th><td>화 – 토 10:00 – 19:00 (예약제)</td></tr>
+              <tr><th scope="row">문의</th><td>051. 753. 3180</td></tr>
+            </tbody>
+          </table>
+          <p class="price-note">작업실 대관은 시간당 40,000원입니다. 촬영 목적에 한해 받고 있으며, 최소 2시간부터 예약됩니다.</p>
+        </div>
+        <img src="assets/p3.jpg" alt="작업실에서 촬영한 도자기 제품 사진" loading="lazy" width="1200" height="900">
+      </div>
+    </div>
+  </section>
+
+  <section class="section contact" id="contact">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="en">CONTACT</span>
+        <div>
+          <h2>견적 문의</h2>
+          <p>촬영 용도와 희망 날짜를 적어 주시면 하루 안에 회신합니다. 급한 문의는 전화가 빠릅니다.</p>
+        </div>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <a class="tel" href="tel:0517533180">051. 753. 3180</a>
+          <span class="hours">화 – 토 10:00 – 19:00<br>일 · 월 휴무<br>문자 문의 010-4862-3180</span>
+          <p style="margin-top:20px">카카오톡 채널 <b style="color:#ededea;font-weight:500">스튜디오 여백</b><br>인스타그램 @studio.yeowon</p>
+        </div>
+        <form class="form" id="quoteForm" novalidate data-endpoint="">
+          <div class="field">
+            <label for="q-name">성함<em>*</em></label>
+            <input id="q-name" name="name" type="text" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="q-tel">연락처<em>*</em></label>
+            <input id="q-tel" name="tel" type="tel" inputmode="numeric" placeholder="010-0000-0000" autocomplete="tel" required>
+          </div>
+          <div class="field">
+            <label for="q-kind">촬영 종류<em>*</em></label>
+            <select id="q-kind" name="kind" required>
+              <option value="">선택</option>
+              <option>프로필</option>
+              <option>가족·커플</option>
+              <option>브랜드·제품</option>
+              <option>공간 대관</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="q-date">희망 날짜</label>
+            <input id="q-date" name="date" type="date">
+          </div>
+          <div class="field">
+            <label for="q-people">인원 · 수량</label>
+            <input id="q-people" name="people" type="text" placeholder="예) 2명 / 제품 3종">
+          </div>
+          <div class="field">
+            <label for="q-purpose">용도</label>
+            <input id="q-purpose" name="purpose" type="text" placeholder="예) 이력서, 스마트스토어 상세">
+          </div>
+          <div class="field full">
+            <label for="q-msg">문의 내용</label>
+            <textarea id="q-msg" name="message" placeholder="촬영 분위기나 참고하실 사진이 있으면 알려 주세요."></textarea>
+          </div>
+          <label class="check full">
+            <input type="checkbox" id="q-agree" name="agree" required>
+            <span>견적 안내를 위해 이름과 연락처를 수집·이용하는 데 동의합니다. 상담 종료 후 3개월 뒤 파기합니다.</span>
+          </label>
+          <div class="form-foot full">
+            <button class="btn btn-light" type="submit">문의 보내기</button>
+            <p class="form-msg" id="formMsg" role="status" aria-live="polite"></p>
+          </div>
+          <div class="sent full" id="sentBox">문의가 접수되었습니다. 하루 안에 회신드리겠습니다.</div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div>
+        <b class="fl">스튜디오 여백</b>
+        부산광역시 수영구 수미로 24, 2층<br>
+        대표 김여원 · 사업자등록번호 613-81-20457<br>
+        051. 753. 3180 · studio@yeowon.kr
+      </div>
+      <div class="links">
+        <a href="#works">작업</a>
+        <a href="#price">요금</a>
+        <a href="#process">진행 안내</a>
+        <a href="#contact">견적 문의</a>
+      </div>
+    </div>
+    <div class="copyright">
+      <span>© 2026 스튜디오 여백</span>
+      <span>작업 이미지는 촬영 동의를 받은 사진만 게시합니다.</span>
+    </div>
+  </div>
+</footer>
+
+<nav class="callbar" aria-label="빠른 연결">
+  <a href="tel:0517533180">전화 문의</a>
+  <a href="#contact">견적 문의서 작성</a>
+</nav>
+
+<script>
+(function () {
+  var btn = document.getElementById('menuBtn');
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var open = document.body.classList.toggle('menu-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.querySelectorAll('#mobileNav a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        document.body.classList.remove('menu-open');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  var form = document.getElementById('quoteForm');
+  var msg = document.getElementById('formMsg');
+  var sent = document.getElementById('sentBox');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = form.name.value.trim();
+      var tel = form.tel.value.replace(/[^0-9]/g, '');
+      if (name.length < 2) { msg.textContent = '성함을 확인해 주세요.'; form.name.focus(); return; }
+      if (tel.length < 9) { msg.textContent = '연락처를 확인해 주세요.'; form.tel.focus(); return; }
+      if (!form.kind.value) { msg.textContent = '촬영 종류를 선택해 주세요.'; form.kind.focus(); return; }
+      if (!form.agree.checked) { msg.textContent = '개인정보 수집·이용에 동의해 주세요.'; form.agree.focus(); return; }
+      msg.textContent = '';
+      form.reset();
+      sent.classList.add('on');
+      var b = form.querySelector('button[type="submit"]');
+      b.textContent = '접수되었습니다';
+      b.disabled = true;
+    });
+  }
+
+  var links = document.querySelectorAll('.nav a');
+  var pairs = [];
+  links.forEach(function (a) {
+    var el = document.querySelector(a.getAttribute('href'));
+    if (el) pairs.push([a, el]);
+  });
+  if ('IntersectionObserver' in window && pairs.length) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) pairs.forEach(function (p) { p[0].classList.toggle('on', p[1] === en.target); });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    pairs.forEach(function (p) { io.observe(p[1]); });
+  }
+})();
+</script>
+</body>
+</html>

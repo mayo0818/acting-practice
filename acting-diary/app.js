@@ -729,9 +729,15 @@
     $('#composeTime').textContent = `${fmtDateLine(draft.createdAt, true)} ${fmtClock(draft.createdAt)}`;
     $('#composeDur').textContent = `${fmtDuration(draft.duration)} · ${fmtBytes(draft.size)}`;
     const clip = $('#clipPreview');
-    if (clipUrl) URL.revokeObjectURL(clipUrl);
-    clipUrl = URL.createObjectURL(draft.blob);
-    clip.src = clipUrl;
+    if (clipUrl) { URL.revokeObjectURL(clipUrl); clipUrl = null; }
+    if (draft.blob) {
+      clipUrl = URL.createObjectURL(draft.blob);
+      clip.src = clipUrl;
+      clip.hidden = false;
+    } else {
+      clip.removeAttribute('src');
+      clip.hidden = false;
+    }
     clip.poster = draft.thumb || '';
 
     selectedTags = (editingEntry && editingEntry.tags ? editingEntry.tags.slice() : []);
@@ -1073,7 +1079,7 @@
     closeSheet('detail');
     go('record');
     state.draft = {
-      blob: blob || new Blob([], { type: 'video/mp4' }),
+      blob: blob || null,
       thumb: entry.thumb,
       duration: entry.duration,
       mime: entry.mime,

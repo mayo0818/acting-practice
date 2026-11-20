@@ -376,7 +376,7 @@
           ? '카메라와 마이크 권한이 꺼져 있습니다.<br>사파리 주소창의 <b>aA → 웹사이트 설정</b>에서 허용해 주세요.'
           : name === 'NotFoundError'
             ? '사용할 수 있는 카메라를 찾지 못했습니다.'
-            : '카메라를 열지 못했습니다. 잠시 뒤 다시 시도해 주세요.';
+            : '카메라를 열지 못했습니다.<br>사파리 주소창의 <b>aA → 웹사이트 설정</b>에서 카메라와 마이크가 허용되어 있는지 확인해 주세요.';
         idle.innerHTML = `<svg class="ico"><use href="#i-record"/></svg><p>${msg}</p><button class="btn btn-ghost btn-sm" type="button" id="retryCam">다시 시도</button>`;
         const rb = $('#retryCam');
         if (rb) rb.onclick = () => { idle.innerHTML = '<svg class="ico"><use href="#i-record"/></svg><p>카메라를 준비하고 있습니다.</p>'; ensureCamera(); };

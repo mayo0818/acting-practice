@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141416">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="연기 일기">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="매일의 연기를 영상과 대사로 남기는 배우의 기록장.">
+<title>연기 일기</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-diary" viewBox="0 0 24 24"><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v12.5H7A2 2 0 0 1 5 17.5v-13Z"/><path d="M5 17.5h14"/><path d="M9 8.5h6M9 12h4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></symbol>
+  <symbol id="i-record" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="12.5" height="11" rx="2.5"/><path d="m16 11.2 4.2-2.6v6.8L16 12.8z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.2"/><path d="m15.7 15.7 4 4"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M4 8.2h8.4M17.2 8.2H20M4 15.8h3.4M12.2 15.8H20"/><circle cx="15" cy="8.2" r="2.1"/><circle cx="10" cy="15.8" r="2.1"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 4.6 2.3 4.7 5.2.7-3.8 3.6.9 5.1-4.6-2.5-4.6 2.5.9-5.1L4.5 10l5.2-.7z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M9 6.5v11l9-5.5z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7.5h14M9.5 7.5V5.2h5v2.3M7 7.5l.8 11.3h8.4L17 7.5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16.5V4.8M8 8.6l4-3.8 4 3.8M5 14v4.5h14V14"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4.5 19.5h4l10-9.6-4-4-10 9.6z"/><path d="m14.2 5.2 4 4"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3.8 13.6 9l5.2 1.6-5.2 1.6L12 17.4l-1.6-5.2L5.2 10.6 10.4 9z"/></symbol>
+  <symbol id="i-flip" viewBox="0 0 24 24"><path d="M6 8.5A7 7 0 0 1 18 9M18 15.5A7 7 0 0 1 6 15"/><path d="M18 5.5V9h-3.2M6 18.5V15h3.2"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M8 4.5v15M16 4.5v15M3.5 9.5h4.5M3.5 14.5h4.5M16 9.5h4.5M16 14.5h4.5"/></symbol>
+</svg>
+
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <p class="brand-kicker">ACTING DIARY</p>
+        <h1>연기 일기</h1>
+      </div>
+      <button class="icon-btn" id="btnSettings" type="button" aria-label="설정">
+        <svg class="ico"><use href="#i-gear"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ 목록 ============ -->
+    <section class="view is-active" id="view-list" aria-labelledby="tab-list">
+      <div class="search-wrap">
+        <svg class="ico search-ico"><use href="#i-search"/></svg>
+        <input type="search" id="searchInput" placeholder="대사, 작품, 배역, 감정으로 찾기" autocomplete="off" enterkeyhint="search">
+        <button class="search-clear" id="searchClear" type="button" aria-label="검색어 지우기" hidden>
+          <svg class="ico"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="filter-row" id="tagFilterRow" hidden></div>
+
+      <div class="list-head">
+        <h2>기록한 장면</h2>
+        <span class="count" id="entryCount">0편</span>
+      </div>
+
+      <div id="timeline" class="timeline"></div>
+
+      <div class="empty" id="emptyState" hidden>
+        <svg class="ico empty-ico"><use href="#i-film"/></svg>
+        <p class="empty-title">아직 남긴 장면이 없어요.</p>
+        <p class="empty-body">오늘 연기한 대사를 영상으로 남기면<br>감정과 표정이 그대로 쌓입니다.</p>
+        <button class="btn btn-primary" type="button" data-go="record">첫 장면 기록하기</button>
+      </div>
+    </section>
+
+    <!-- ============ 달력 ============ -->
+    <section class="view" id="view-calendar" aria-labelledby="tab-calendar">
+      <div class="cal-head">
+        <button class="icon-btn small" id="calPrev" type="button" aria-label="이전 달"><svg class="ico flip"><use href="#i-chevron"/></svg></button>
+        <h2 id="calTitle">2026년 11월</h2>
+        <button class="icon-btn small" id="calNext" type="button" aria-label="다음 달"><svg class="ico"><use href="#i-chevron"/></svg></button>
+      </div>
+      <div class="cal-grid" id="calGrid" role="grid" aria-label="기록 달력"></div>
+      <div class="cal-legend"><span class="dot-demo"></span>기록이 있는 날 · 점을 누르면 그날 장면만 봅니다</div>
+
+      <div class="list-head cal-list-head">
+        <h2 id="calDayLabel">오늘</h2>
+        <button class="text-btn" id="calClearDay" type="button" hidden>전체 보기</button>
+      </div>
+      <div id="calEntries" class="timeline"></div>
+      <p class="cal-empty" id="calEmpty" hidden>이 날은 남긴 장면이 없어요.</p>
+    </section>
+
+    <!-- ============ 새 기록 ============ -->
+    <section class="view" id="view-record" aria-labelledby="tab-record">
+      <div class="segmented" role="tablist" aria-label="기록 방식">
+        <button class="seg is-active" id="segCamera" type="button" role="tab" aria-selected="true">카메라</button>
+        <button class="seg" id="segUpload" type="button" role="tab" aria-selected="false">영상 올리기</button>
+      </div>
+
+      <!-- 카메라 -->
+      <div class="rec-panel" id="recPanel">
+        <div class="stage" id="stage">
+          <video id="livePreview" class="live-video" playsinline autoplay muted></video>
+          <div class="stage-idle" id="stageIdle">
+            <svg class="ico"><use href="#i-record"/></svg>
+            <p>카메라를 켜면<br>연기하는 모습이 그대로 담깁니다.</p>
+          </div>
+          <div class="stage-hud" id="stageHud" hidden>
+            <span class="rec-dot"></span><span id="recTimer">00:00</span>
+            <span class="hud-right" id="recSize">0MB</span>
+          </div>
+          <button class="flip-btn" id="flipBtn" type="button" aria-label="카메라 전환" hidden>
+            <svg class="ico"><use href="#i-flip"/></svg>
+          </button>
+        </div>
+
+        <div class="rec-actions">
+          <button class="shutter" id="shutterBtn" type="button" aria-label="녹화 시작" disabled>
+            <span class="shutter-inner"></span>
+          </button>
+          <p class="rec-hint" id="recHint">셔터를 누르면 바로 녹화가 시작됩니다.</p>
+        </div>
+
+        <div class="stt-panel" id="sttPanel" hidden>
+          <div class="stt-head">
+            <span class="stt-label">실시간 대사 인식</span>
+            <span class="stt-state" id="sttState"></span>
+          </div>
+          <p class="stt-text" id="sttText"><span class="stt-placeholder">녹화하는 동안 말한 대사가 여기에 쌓입니다.</span></p>
+        </div>
+
+        <details class="upload-fallback" id="uploadFallback">
+          <summary>카메라를 쓸 수 없나요?</summary>
+          <p>아이폰 사진에 있는 영상을 올려도 같은 방식으로 기록할 수 있습니다.</p>
+          <label class="btn btn-ghost file-btn">
+            <svg class="ico"><use href="#i-upload"/></svg>사진에서 영상 고르기
+            <input type="file" id="fileInputFallback" accept="video/*">
+          </label>
+        </details>
+      </div>
+
+      <!-- 업로드 -->
+      <div class="rec-panel" id="uploadPanel" hidden>
+        <label class="dropzone" id="dropzone">
+          <svg class="ico"><use href="#i-upload"/></svg>
+          <span class="drop-title">영상 올리기</span>
+          <span class="drop-sub">사진 앱이나 파일에서 고르세요</span>
+          <input type="file" id="fileInput" accept="video/*">
+        </label>
+        <p class="fine-print">영상은 이 기기 안에만 저장되고 서버로 보내지 않습니다.</p>
+      </div>
+
+      <!-- 작성 폼 -->
+      <form class="compose" id="composeForm" hidden novalidate>
+        <div class="compose-head">
+          <video id="clipPreview" class="clip-preview" playsinline controls preload="metadata"></video>
+          <div class="compose-meta">
+            <p class="compose-time" id="composeTime">—</p>
+            <p class="compose-dur" id="composeDur">—</p>
+            <button class="text-btn" type="button" id="discardBtn">버리기</button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="label">작품</span>
+            <input type="text" id="fWork" placeholder="예: 햄릿" maxlength="60">
+          </label>
+          <label class="field">
+            <span class="label">배역</span>
+            <input type="text" id="fCharacter" placeholder="예: 오필리어" maxlength="40">
+          </label>
+        </div>
+
+        <label class="field">
+          <span class="label">대사 <em id="lineStats">0자</em></span>
+          <textarea id="fLines" rows="4" placeholder="연기한 대사를 적어 두세요. 실시간 인식된 대사가 있으면 자동으로 채워집니다."></textarea>
+        </label>
+
+        <div class="field">
+          <span class="label">감정 <em>여러 개 고를 수 있어요</em></span>
+          <div class="chips" id="emotionChips"></div>
+          <div class="chip-add">
+            <input type="text" id="emotionInput" placeholder="직접 입력" maxlength="12" enterkeyhint="done">
+            <button class="chip-add-btn" type="button" id="emotionAdd" aria-label="감정 추가"><svg class="ico"><use href="#i-plus"/></svg></button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">오늘의 별점 <em id="ratingLabel">아직 없음</em></span>
+          <div class="rating" id="ratingStars" role="radiogroup" aria-label="별점"></div>
+        </div>
+
+        <label class="field">
+          <span class="label">메모 <em>카메라 앞에서 느낀 것</em></span>
+          <textarea id="fMemo" rows="3" placeholder="예: 두 번째 테이크에서 시선을 조금 더 오래 두니 살아났다."></textarea>
+        </label>
+
+        <div class="ai-box" id="aiBox">
+          <div class="ai-head">
+            <span class="ai-title"><svg class="ico"><use href="#i-spark"/></svg>AI 연기 분석</span>
+            <button class="btn btn-ghost btn-sm" type="button" id="aiRunBtn">분석하기</button>
+          </div>
+          <p class="ai-desc" id="aiDesc">Gemini 키를 설정에 넣으면 대사를 받아 적고 감정선·전달력·시선을 짚어 줍니다. 키가 없어도 직접 적어 저장할 수 있습니다.</p>
+          <div class="ai-result" id="aiResult" hidden></div>
+        </div>
+
+        <div class="compose-actions">
+          <button class="btn btn-primary btn-lg" type="submit" id="saveBtn">일기에 남기기</button>
+          <button class="btn btn-ghost" type="button" id="cancelCompose">취소</button>
+        </div>
+        <p class="fine-print center" id="composeNote">영상과 기록은 이 기기의 브라우저 저장소에 남습니다.</p>
+      </form>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="주요 화면">
+    <button class="tab is-active" id="tab-list" type="button" data-go="list">
+      <svg class="ico"><use href="#i-diary"/></svg><span>일기</span>
+    </button>
+    <button class="tab" id="tab-calendar" type="button" data-go="calendar">
+      <svg class="ico"><use href="#i-calendar"/></svg><span>달력</span>
+    </button>
+    <button class="tab" id="tab-record" type="button" data-go="record">
+      <svg class="ico"><use href="#i-record"/></svg><span>기록</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ============ 상세 ============ -->
+<div class="sheet-backdrop" id="detailBackdrop" hidden></div>
+<div class="sheet" id="detailSheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle" hidden>
+  <div class="sheet-head">
+    <button class="icon-btn" id="detailClose" type="button" aria-label="닫기"><svg class="ico"><use href="#i-close"/></svg></button>
+    <span class="sheet-kicker">장면</span>
+    <button class="icon-btn" id="detailEdit" type="button" aria-label="수정"><svg class="ico"><use href="#i-edit"/></svg></button>
+  </div>
+  <div class="sheet-body" id="detailBody"></div>
+</div>
+
+<!-- ============ 설정 ============ -->
+<div class="sheet-backdrop" id="settingsBackdrop" hidden></div>
+<div class="sheet sheet-settings" id="settingsSheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
+  <div class="sheet-head">
+    <button class="icon-btn" id="settingsClose" type="button" aria-label="닫기"><svg class="ico"><use href="#i-close"/></svg></button>
+    <h2 class="sheet-title" id="settingsTitle">설정</h2>
+    <span class="sheet-kicker">&nbsp;</span>
+  </div>
+  <div class="sheet-body">
+    <section class="set-section">
+      <h3>AI 분석</h3>
+      <p class="set-desc">Gemini API 키를 넣으면 영상에서 대사를 뽑아내고 연기 피드백을 받습니다. 키는 이 브라우저에만 저장되고 어디로도 보내지 않습니다.</p>
+      <label class="field">
+        <span class="label">Gemini API 키</span>
+        <input type="password" id="setApiKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+      </label>
+      <div class="set-row">
+        <button class="btn btn-ghost btn-sm" id="saveKeyBtn" type="button">저장</button>
+        <button class="btn btn-ghost btn-sm" id="clearKeyBtn" type="button">키 삭제</button>
+        <span class="set-state" id="keyState">등록된 키 없음</span>
+      </div>
+      <p class="set-hint">키 발급: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (무료 한도 있음)</p>
+    </section>
+
+    <section class="set-section">
+      <h3>기록 보관</h3>
+      <p class="set-desc">영상은 이 기기에 저장됩니다. JSON으로 내보내면 대사·메모·별점은 다른 기기로 옮길 수 있습니다.</p>
+      <div class="set-row wrap">
+        <button class="btn btn-ghost btn-sm" id="exportBtn" type="button">JSON 내보내기</button>
+        <label class="btn btn-ghost btn-sm file-btn">JSON 가져오기
+          <input type="file" id="importInput" accept="application/json,.json">
+        </label>
+      </div>
+      <dl class="set-stats">
+        <div><dt>남긴 장면</dt><dd id="statCount">0편</dd></div>
+        <div><dt>이 기기 사용량</dt><dd id="statStorage">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="set-section">
+      <h3>앱 정보</h3>
+      <p class="set-desc">홈 화면에 추가하면 앱처럼 열립니다. Safari 공유 → <b>홈 화면에 추가</b>.</p>
+      <p class="set-fine">연기 일기 <span id="appVersion">v1.0.0</span> · 영상과 기록은 서버에 올라가지 않습니다.</p>
+      <button class="btn btn-danger btn-sm" id="wipeBtn" type="button">모든 기록 삭제</button>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

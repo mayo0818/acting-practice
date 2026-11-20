@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="연기 일기">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="0%" r="95%">
+      <stop offset="0" stop-color="#332b25"/>
+      <stop offset="60%" stop-color="#1a1a1d"/>
+      <stop offset="1" stop-color="#141416"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#141416"/>
+  <rect width="512" height="512" fill="url(#glow)"/>
+  <rect x="133" y="102" width="246" height="308" rx="26" fill="none" stroke="#f5f2eb" stroke-width="15" opacity="0.93"/>
+  <path d="M232 200 L316 252 L232 304 Z" fill="#f5f2eb"/>
+  <circle cx="256" cy="350" r="17" fill="#c25a4b"/>
+</svg>

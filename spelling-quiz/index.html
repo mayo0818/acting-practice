@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="맞춤법">
+<title>맞춤법 10문항</title>
+<style>
+:root{
+  --fg:#17181a;
+  --body:#33363b;
+  --muted:#6f757d;
+  --line:#e6e7ea;
+  --soft:#f6f7f8;
+  --accent:#2c5f8a;
+  --ok:#18794e;
+  --ok-bg:#f1f8f4;
+  --no:#b23c2f;
+  --no-bg:#fdf3f1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:#fff;color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  font-size:16px;line-height:1.6;
+  padding-bottom:calc(28px + env(safe-area-inset-bottom));
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation}
+.wrap{max-width:520px;margin:0 auto;padding:0 20px}
+
+/* 상단 바 */
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.top-in{max-width:520px;margin:0 auto;height:52px;padding:0 12px 0 16px;display:flex;align-items:center;gap:8px}
+.top-t{flex:1;font-size:15px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ic{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--body);border-radius:8px}
+.ic:active{background:var(--soft)}
+.ic.txt{width:auto;padding:0 10px;font-size:14px;color:var(--muted);font-weight:500}
+.bar{height:2px;background:#eef0f2}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .22s ease}
+
+/* 홈 */
+.eyebrow{margin:22px 0 12px;font-size:13px;color:var(--muted);letter-spacing:.01em}
+.today{border:1px solid var(--line);border-radius:12px;padding:18px 18px 16px;margin-bottom:28px}
+.today-top{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.today-day{font-size:26px;font-weight:700;letter-spacing:-.01em;margin:6px 0 2px}
+.today-topic{font-size:14px;color:var(--body);margin-bottom:16px}
+.listhead{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line)}
+.days{list-style:none;margin:0;padding:0}
+.dayrow{width:100%;display:grid;grid-template-columns:1fr auto;gap:1px 8px;align-items:baseline;text-align:left;padding:13px 0;border-bottom:1px solid var(--line)}
+.dayrow:active{background:var(--soft)}
+.dr-l{display:flex;gap:9px;align-items:baseline}
+.dr-l b{font-size:16px;font-weight:600}
+.dr-d{font-size:13px;color:var(--muted)}
+.dr-s{font-size:14px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.dr-t{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.dayrow.on .dr-l b{color:var(--accent)}
+.dayrow.on .dr-l b::after{content:" · 오늘";font-size:12px;font-weight:500;color:var(--muted)}
+.foot-note{margin:22px 0 0;font-size:12.5px;color:var(--muted);line-height:1.7}
+
+/* 버튼 */
+.primary{display:inline-flex;align-items:center;justify-content:center;background:#17181a;color:#fff;border-radius:10px;padding:14px 18px;font-size:16px;font-weight:600;min-height:50px}
+.primary:active{background:#000}
+.primary:disabled{background:#c9ccd1;color:#fff}
+.ghost{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;padding:14px 18px;font-size:16px;font-weight:600;min-height:50px;color:var(--body);background:#fff}
+.ghost:active{background:var(--soft)}
+.wide{display:flex;width:100%}
+.link{color:var(--muted);font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:8px 4px}
+
+/* 문제 */
+.qmeta{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px;font-size:13px;color:var(--muted)}
+.qcount{font-variant-numeric:tabular-nums}
+.qkind{background:var(--soft);border-radius:5px;padding:3px 8px;font-size:12.5px;color:var(--body)}
+.qtext{font-size:18px;line-height:1.78;color:var(--fg);margin:0 0 22px;word-break:keep-all}
+.qtext b{font-weight:700;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
+
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);border-radius:10px;padding:13px 14px;font-size:16px;line-height:1.6;color:var(--fg);word-break:keep-all;min-height:50px}
+.choice:active{background:var(--soft)}
+.mk{flex:none;color:#8b9098;font-weight:600;width:17px}
+.choice.ok{border-color:var(--ok);background:var(--ok-bg)}
+.choice.ok .mk{color:var(--ok)}
+.choice.no{border-color:var(--no);background:var(--no-bg)}
+.choice.no .mk{color:var(--no)}
+.choice.dim{opacity:.5}
+.choice:disabled{cursor:default}
+
+.ans-row{display:flex;gap:10px;align-items:stretch}
+.ans-input{flex:1;min-width:0;font:inherit;font-size:17px;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--fg);min-height:50px}
+.ans-input:focus{outline:none;border-color:var(--accent)}
+.ans-input:disabled{background:var(--soft);color:var(--body);-webkit-text-fill-color:var(--body);opacity:1}
+.ans-input::placeholder{color:#a4a9b0}
+.ans-hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.ans-actions{display:flex;align-items:center;gap:6px;margin-top:12px}
+.ans-actions .primary{flex:1}
+
+/* 채점 결과 */
+.fb{margin-top:24px;border-top:1px solid var(--line);padding-top:18px;scroll-margin-bottom:80px}
+.fb-h{font-size:14px;font-weight:700;letter-spacing:.01em}
+.fb.ok .fb-h{color:var(--ok)}
+.fb.no .fb-h{color:var(--no)}
+.fb.neutral .fb-h{color:var(--accent)}
+.fb-a{margin:8px 0 10px;font-size:16px}
+.fb-a .lbl{color:var(--muted);font-size:13px;margin-right:6px}
+.fb-a .ans{font-weight:700}
+.fb-a .model{display:block;margin-top:4px;line-height:1.75;font-weight:500;color:var(--fg)}
+.fb-x{margin:0 0 14px;font-size:15px;line-height:1.75;color:var(--body);word-break:keep-all}
+.judge{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.judge .jbtn{border:1px solid var(--line);border-radius:16px;padding:6px 12px;font-size:13px;color:var(--body)}
+.judge .jbtn.on{border-color:var(--fg);background:var(--fg);color:#fff}
+.foot{margin-top:22px}
+.foot .note{font-size:13px;color:var(--muted);text-align:center;margin:10px 0 0}
+
+/* 결과 */
+.result{padding-top:6px}
+.big{display:flex;align-items:baseline;gap:4px;margin:8px 0 0}
+.big b{font-size:56px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.big span{font-size:18px;color:var(--muted)}
+.bigsub{margin:2px 0 22px;font-size:15px;color:var(--body)}
+.wrongbox{border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:15px;color:var(--body)}
+.wrongbox.none{color:var(--muted)}
+.rbtns{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+
+/* 규정 카드 */
+.sheetwrap{position:fixed;inset:0;background:rgba(20,21,23,.34);z-index:60;display:none}
+.sheetwrap.open{display:block}
+.sheet{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:520px;max-height:88vh;background:#fff;border-radius:14px 14px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.sheet-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);flex:none}
+.sheet-top b{font-size:16px;font-weight:600}
+.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 18px calc(30px + env(safe-area-inset-bottom))}
+.sheet h3{font-size:13px;font-weight:600;color:var(--muted);margin:22px 0 8px;letter-spacing:.02em}
+.card{border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:8px}
+.cr{font-size:15px;font-weight:700;margin-bottom:3px}
+.cp{font-size:14.5px;color:var(--body);line-height:1.65;word-break:keep-all}
+.cl{display:flex;gap:8px;font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.6}
+.cl i{flex:none;font-style:normal;color:#9aa0a7;font-size:12.5px;padding-top:1px;min-width:22px}
+.cl.trap{color:#8a4a41}
+.cl.trap i{color:#b23c2f}
+.cl span.v{word-break:keep-all}
+.sheet ol.checks{margin:0;padding-left:20px}
+.sheet ol.checks li{font-size:14.5px;line-height:1.7;color:var(--body);margin-bottom:9px;word-break:keep-all}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="sheetwrap" id="sheetwrap" aria-hidden="true"></div>
+
+<script>var DATA={"days":[{"day":1,"date":"11/24","weekday":"화","topic":"제1·5·41·57항","level":"쉬움","questions":[{"n":1,"kind":"규정·원칙","q":"다음 중 한글 맞춤법 제1항의 원칙을 옳게 설명한 것은?","explain":"제1항은 “한글 맞춤법은 표준어를 소리대로 적되, 어법에 맞도록 함을 원칙으로 한다.”라고 정하고 있다.","type":"mc","choices":[{"mark":"①","text":"표준어를 소리대로 적되, 어법에 맞도록 함을 원칙으로 한다."},{"mark":"②","text":"표준어를 어법에 맞게 적되, 소리 나는 대로만 적음을 원칙으로 한다."},{"mark":"③","text":"표준어를 한자의 본음대로 적음을 원칙으로 한다."},{"mark":"④","text":"형태소와 상관없이 소리대로만 적음을 원칙으로 한다."},{"mark":"⑤","text":"표준어를 된소리로 적되, 의미는 고려하지 않음을 원칙으로 한다."}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"규정·원칙","q":"한글 맞춤법이 ‘어법에 맞도록’ 적는 것을 원칙으로 하는 까닭으로 가장 적절한 것은?","explain":"소리대로만 적으면 한 형태소가 여러 모습으로 흔들린다. 형태소를 고정해 적어야 뜻을 파악하기 쉽다(제1항의 취지).","type":"mc","choices":[{"mark":"①","text":"발음을 정확하게 하기 위해서이다."},{"mark":"②","text":"뜻을 가진 부분(형태소)을 고정하여 적으면 의미 파악에 효과적이기 때문이다."},{"mark":"③","text":"글자를 적는 속도를 높이기 위해서이다."},{"mark":"④","text":"표준어와 방언을 구별하기 위해서이다."},{"mark":"⑤","text":"외래어를 우리말처럼 적기 위해서이다."}],"answer":2,"answerMark":"②","display":"②"},{"n":3,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"두 모음 사이에서 나는 된소리는 된소리로 적으므로 ‘어깨’가 맞다(제5항 1).","type":"mc","choices":[{"mark":"①","text":"어께"},{"mark":"②","text":"오빠"},{"mark":"③","text":"으뜸"},{"mark":"④","text":"아끼다"},{"mark":"⑤","text":"가끔"}],"answer":1,"answerMark":"①","display":"①"},{"n":4,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘ㄱ,ㅂ’ 받침 뒤의 된소리는 같은 음절이 겹쳐 나는 경우가 아니면 된소리로 적지 않으므로 ‘국수’가 맞다(제5항 다만).","type":"mc","choices":[{"mark":"①","text":"국쑤"},{"mark":"②","text":"깍두기"},{"mark":"③","text":"딱지"},{"mark":"④","text":"법석"},{"mark":"⑤","text":"몹시"}],"answer":1,"answerMark":"①","display":"①"},{"n":5,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n오늘은 기분이 <b>산듯하다</b>.","explain":"‘ㄴ’ 받침 뒤에서 나는 된소리는 된소리로 적는다(제5항 2). ‘산듯하다’는 잘못이다.","type":"sa","mode":"loose","display":"산뜻하다","answers":["산뜻하다"],"hint":""},{"n":6,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 <b>어께</b>를 으쓱이며 대답했다.","explain":"두 모음 ‘ㅓ,ㅐ’ 사이에서 나는 된소리는 된소리로 적는다(제5항 1).","type":"sa","mode":"loose","display":"어깨","answers":["어깨"],"hint":""},{"n":7,"kind":"띄어쓰기","q":"다음 설명이 옳으면 ○, 틀리면 ×를 쓰시오.\n‘꽃이 예쁘다.’에서 ‘이’는 앞말과 띄어 써야 한다.","explain":"조사는 그 앞말에 붙여 쓰므로 ‘꽃이’로 적는다(제41항).","type":"sa","mode":"ox","display":"×","answers":["×","x","X","아니오","아니요","틀림","틀렸다","no"],"hint":"○ 또는 ×"},{"n":8,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n저기 까지나 가 보자.","explain":"‘까지’는 조사이므로 앞말에 붙여 쓴다(제41항). ‘어디까지나’, ‘거기도’와 같은 방식이다.","type":"sa","mode":"strict","display":"저기까지나","answers":["저기까지나"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":9,"kind":"혼동 어휘","q":"다음 문장의 빈칸에 들어갈 말을 바르게 짝지은 것은?\n(가) 약속은 ( ) 지켜야 한다.\n(나) 고개를 ( ) 들어라.","explain":"‘반드시’는 ‘틀림없이 꼭’, ‘반듯이’는 ‘기울지 않게 바르게’의 뜻이다. 약속에는 ‘반드시’, 고개를 드는 모양에는 ‘반듯이’를 쓴다(제57항).","type":"mc","choices":[{"mark":"①","text":"반드시 / 반드시"},{"mark":"②","text":"반듯이 / 반듯이"},{"mark":"③","text":"반드시 / 반듯이"},{"mark":"④","text":"반듯이 / 반드시"},{"mark":"⑤","text":"반듯히 / 반드시"}],"answer":3,"answerMark":"③","display":"③"},{"n":10,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘저리다’는 감각이 없어지거나 시린 것이고, ‘절이다’는 소금에 담그는 것이다. 다친 다리는 ‘저리다’로 써야 한다(제57항).","type":"mc","choices":[{"mark":"①","text":"다친 다리가 저리다."},{"mark":"②","text":"김장 배추를 절인다."},{"mark":"③","text":"다친 다리를 절인다."},{"mark":"④","text":"배추를 소금에 절였다."},{"mark":"⑤","text":"손이 저려 온다."}],"answer":3,"answerMark":"③","display":"③"}]},{"day":2,"date":"11/25","weekday":"수","topic":"제5·6·42·57항","level":"쉬움","questions":[{"n":1,"kind":"규정·원칙","q":"‘ㄷ,ㅌ’ 받침 뒤에 ‘-이’나 ‘-히’가 붙어 ‘지,치’로 소리 나는 경우, 제6항에 따라 어떻게 적는가?","explain":"‘ㄷ,ㅌ’이 ‘ㅈ,ㅊ’으로 소리 나더라도 ‘ㄷ,ㅌ’으로 적는다(제6항). ‘맏이, 해돋이, 굳이, 같이, 굳히다’가 그 예이다.","type":"mc","choices":[{"mark":"①","text":"소리 나는 대로 ‘지,치’로 적는다."},{"mark":"②","text":"원래의 ‘ㄷ,ㅌ’으로 적는다."},{"mark":"③","text":"뒷말의 첫소리를 된소리로 적는다."},{"mark":"④","text":"‘ㅅ’ 받침으로 적는다."},{"mark":"⑤","text":"단어의 첫머리만 두음법칙을 적용한다."}],"answer":2,"answerMark":"②","display":"②"},{"n":2,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘맏이’가 맞다. 소리가 [마지]로 나도 원형 ‘ㄷ’을 밝혀 적는다(제6항).","type":"mc","choices":[{"mark":"①","text":"마지"},{"mark":"②","text":"맏이"},{"mark":"③","text":"해돋이"},{"mark":"④","text":"굳이"},{"mark":"⑤","text":"같이"}],"answer":1,"answerMark":"①","display":"①"},{"n":3,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘색시’가 맞다. ‘ㄱ,ㅂ’ 받침 뒤의 된소리는 같은 음절이 겹쳐 나는 경우가 아니면 된소리로 적지 않는다(제5항 다만).","type":"mc","choices":[{"mark":"①","text":"색씨"},{"mark":"②","text":"국수"},{"mark":"③","text":"법석"},{"mark":"④","text":"딱지"},{"mark":"⑤","text":"갑자기"}],"answer":1,"answerMark":"①","display":"①"},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n바람에 문이 저절로 <b>다쳤다</b>.","explain":"‘닫-’에 ‘-히-’가 붙은 말이므로 ‘닫혔다’로 적는다(제6항).","type":"sa","mode":"loose","display":"닫혔다","answers":["닫혔다"],"hint":""},{"n":5,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n아이는 모래에 얼굴을 <b>무치고</b> 놀았다.","explain":"소리가 [무치고]로 나도 원형 ‘ㅌ’을 밝혀 ‘묻히고’로 적는다(제6항).","type":"sa","mode":"loose","display":"묻히고","answers":["묻히고"],"hint":""},{"n":6,"kind":"규정·원칙","q":"‘닫히다’를 ‘다치다’로 적지 않는 근거가 되는 규정은?","explain":"구개음화와 관련된 규정은 제6항이다.","type":"mc","choices":[{"mark":"①","text":"제5항"},{"mark":"②","text":"제6항"},{"mark":"③","text":"제11항"},{"mark":"④","text":"제30항"},{"mark":"⑤","text":"제42항"}],"answer":2,"answerMark":"②","display":"②"},{"n":7,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"‘것’은 의존 명사이므로 앞말과 띄어 쓴다(제42항).","type":"mc","choices":[{"mark":"①","text":"아는것이힘이다."},{"mark":"②","text":"아는 것이 힘이다."},{"mark":"③","text":"아는것이 힘이다."},{"mark":"④","text":"아는 것이힘이다."},{"mark":"⑤","text":"아는 것이 힘 이다."}],"answer":2,"answerMark":"②","display":"②"},{"n":8,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n나는 너를 만날수가 없다.","explain":"‘수’는 의존 명사이므로 띄어 쓰고, 뒤에 붙은 조사 ‘가’는 ‘수’에 붙여 쓴다(제42항).","type":"sa","mode":"strict","display":"만날 수가","answers":["만날 수가"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":9,"kind":"혼동 어휘","q":"굵게 표시한 말이 바르게 쓰인 문장은?","explain":"‘받치다’는 물건을 괴거나 높이 들어 올리는 뜻이다. ‘받히다’는 부딪침을 당하는 뜻이므로 “쇠뿔에 받혔다”로 쓴다(제57항).","type":"mc","choices":[{"mark":"①","text":"양산을 <b>받히고</b> 걷는다."},{"mark":"②","text":"우산을 <b>받치고</b> 걷는다."},{"mark":"③","text":"쇠뿔에 <b>받치었다</b>."},{"mark":"④","text":"편지를 <b>받쳤다</b>."},{"mark":"⑤","text":"벽에 그림을 <b>받쳤다</b>."}],"answer":2,"answerMark":"②","display":"②"},{"n":10,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘시키다’는 일을 하게 하는 뜻이고, ‘식히다’는 뜨거운 것을 차게 하는 뜻이다. 일은 ‘시키는’ 것이다(제57항).","type":"mc","choices":[{"mark":"①","text":"어머니가 아이에게 심부름을 시키셨다."},{"mark":"②","text":"끓인 물을 한김 식힌다."},{"mark":"③","text":"그는 나에게 일을 식혔다."},{"mark":"④","text":"국을 식혀서 먹었다."},{"mark":"⑤","text":"선생님이 학생을 교무실로 부르셨다."}],"answer":3,"answerMark":"③","display":"③"}]},{"day":3,"date":"11/26","weekday":"목","topic":"제11·30·41·51항","level":"보통","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"한자음 ‘량’이 단어 첫머리에 올 때는 두음법칙에 따라 ‘양’으로 적으므로 ‘양식’이 맞다(제11항).","type":"mc","choices":[{"mark":"①","text":"양심"},{"mark":"②","text":"역사"},{"mark":"③","text":"예의"},{"mark":"④","text":"유행"},{"mark":"⑤","text":"량식"}],"answer":5,"answerMark":"⑤","display":"⑤"},{"n":2,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 항상 <b>례의</b>를 갖추었다.","explain":"‘례’가 첫머리에 왔으므로 ‘예’로 적는다(제11항).","type":"sa","mode":"loose","display":"예의","answers":["예의","례의 → 예의"],"hint":""},{"n":3,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"모음 뒤에 이어지는 ‘렬’은 ‘열’로 적으므로 ‘나열’이 맞다(제11항 다만).","type":"mc","choices":[{"mark":"①","text":"나열"},{"mark":"②","text":"치열"},{"mark":"③","text":"진열"},{"mark":"④","text":"비열"},{"mark":"⑤","text":"나렬"}],"answer":5,"answerMark":"⑤","display":"⑤"},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 <b>류행하는</b> 노래를 즐겨 부른다.","explain":"‘류’가 첫머리에 왔으므로 ‘유’로 적는다(제11항).","type":"sa","mode":"loose","display":"유행하는","answers":["유행하는","류행하는 → 유행하는"],"hint":""},{"n":5,"kind":"틀린 것","q":"다음 중 사이시옷이 바르게 쓰이지 않은 것은?","explain":"‘곳간’이 맞다. 두 음절로 된 한자어 가운데 곳간·셋방·숫자·찻간·횟수 등은 사이시옷을 받친다(제30항 3).","type":"mc","choices":[{"mark":"①","text":"고간"},{"mark":"②","text":"셋방"},{"mark":"③","text":"숫자"},{"mark":"④","text":"찻간"},{"mark":"⑤","text":"횟수"}],"answer":1,"answerMark":"①","display":"①"},{"n":6,"kind":"규정·원칙","q":"‘숫자’에 사이시옷이 들어간 까닭으로 옳은 것은?","explain":"한자어끼리는 원칙적으로 사이시옷을 받치지 않지만, 두 음절로 된 한자어 여섯 개는 예외로 인정한다(제30항 3).","type":"mc","choices":[{"mark":"①","text":"순우리말끼리 이루어진 합성어이기 때문이다."},{"mark":"②","text":"순우리말과 한자어로 이루어진 합성어이기 때문이다."},{"mark":"③","text":"두 음절로 된 한자어 가운데 사이시옷을 받치는 예외에 해당하기 때문이다."},{"mark":"④","text":"뒷말의 첫소리가 거센소리로 나기 때문이다."},{"mark":"⑤","text":"첫소리에 ‘ㄴ’ 소리가 덧나기 때문이다."}],"answer":3,"answerMark":"③","display":"③"},{"n":7,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"부사의 끝음절이 ‘이’로만 나는 것은 ‘-이’로 적으므로 ‘깨끗이’가 맞다(제51항 1).","type":"mc","choices":[{"mark":"①","text":"깨끗히"},{"mark":"②","text":"가까이"},{"mark":"③","text":"많이"},{"mark":"④","text":"열심히"},{"mark":"⑤","text":"정확히"}],"answer":1,"answerMark":"①","display":"①"},{"n":8,"kind":"혼동 어휘","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 서류를 <b>꿈꿈이</b> 살폈다.","explain":"‘-이’나 ‘-히’로 나는 말은 ‘-히’로 적으므로 ‘꿈꿈히’가 맞다(제51항 3).","type":"sa","mode":"loose","display":"꿈꿈히","answers":["꿈꿈히","꿈꿈이 → 꿈꿈히"],"hint":""},{"n":9,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"‘처럼’은 조사이므로 앞말에 붙여 쓴다(제41항).","type":"mc","choices":[{"mark":"①","text":"꽃 처럼 피었다."},{"mark":"②","text":"꽃처럼 피었다."},{"mark":"③","text":"꽃처럼피었다."},{"mark":"④","text":"꽃 처럼피었다."},{"mark":"⑤","text":"꽃 처 럼 피었다."}],"answer":2,"answerMark":"②","display":"②"},{"n":10,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n그는 아무 말 없이 웃고 만 있었다.","explain":"‘만’은 조사이므로 앞말에 붙여 쓴다(제41항). 원문 예시도 ‘웃고만’이다.","type":"sa","mode":"strict","display":"웃고만","answers":["웃고만"],"hint":"띄어쓰기까지 맞춰 쓰세요"}]},{"day":4,"date":"11/27","weekday":"금","topic":"제30·35·36·43·47항","level":"보통","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘되었다’가 줄어 ‘됐다’로 적는다. ‘됬다’는 어떤 경우에도 쓰지 않는다(제35항).","type":"mc","choices":[{"mark":"①","text":"봐"},{"mark":"②","text":"줘"},{"mark":"③","text":"돼"},{"mark":"④","text":"됬다"},{"mark":"⑤","text":"봤다"}],"answer":4,"answerMark":"④","display":"④"},{"n":2,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 준 대로 적으시오.\n그는 나를 <b>보어</b> 웃었다.","explain":"‘ㅗ’로 끝난 어간 ‘보-’에 ‘-아’가 어울려 ‘ㅘ’로 줄었으므로 준 대로 적는다(제35항).","type":"sa","mode":"loose","display":"봐","answers":["봐"],"hint":""},{"n":3,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 준 대로 적으시오.\n그는 매일 그 길을 <b>다니어</b> 학교에 간다.","explain":"‘ㅣ’ 뒤에 ‘-어’가 와서 ‘ㅕ’로 줄었으므로 준 대로 적는다(제36항).","type":"sa","mode":"loose","display":"다녀","answers":["다녀"],"hint":""},{"n":4,"kind":"틀린 것","q":"다음 중 사이시옷이 바르게 쓰이지 않은 것은?","explain":"‘대가(代價)’는 한자어끼리 이루어진 말이므로 사이시옷을 받치지 않는다(제30항).","type":"mc","choices":[{"mark":"①","text":"곳간"},{"mark":"②","text":"횟수"},{"mark":"③","text":"숫자"},{"mark":"④","text":"댓가"},{"mark":"⑤","text":"셋방"}],"answer":4,"answerMark":"④","display":"④"},{"n":5,"kind":"규정·원칙","q":"제30항에 따라 사이시옷을 받치지 않는 경우는?","explain":"사이시옷은 순우리말 합성어와 순우리말+한자어 합성어에서 인정하며, 한자어끼리는 인정하지 않는다(제30항).","type":"mc","choices":[{"mark":"①","text":"순우리말끼리 이루어진 합성어"},{"mark":"②","text":"순우리말과 한자어로 이루어진 합성어"},{"mark":"③","text":"한자어끼리 이루어진 합성어"},{"mark":"④","text":"두 음절로 된 한자어 예외"},{"mark":"⑤","text":"뒷말의 첫소리가 된소리로 나는 순우리말 합성어"}],"answer":3,"answerMark":"③","display":"③"},{"n":6,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"단위를 나타내는 명사는 띄어 쓰므로 ‘한 마리’로 적는다(제43항).","type":"mc","choices":[{"mark":"①","text":"소한마리"},{"mark":"②","text":"소 한 마리"},{"mark":"③","text":"소 한마리"},{"mark":"④","text":"소한 마리"},{"mark":"⑤","text":"소 한 마 리"}],"answer":2,"answerMark":"②","display":"②"},{"n":7,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n학생 열명이 교실에 들어왔다.","explain":"‘명’은 사람을 세는 단위 명사이므로 앞말과 띄어 쓴다(제43항).","type":"sa","mode":"strict","display":"열 명","answers":["열 명"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":8,"kind":"혼동 어휘","q":"보조 용언의 띄어쓰기 원칙(제47항)에 맞는 것은?","explain":"보조 용언은 띄어 씀을 원칙으로 하고 경우에 따라 붙여 씀을 허용한다. 원칙에 맞는 것은 ‘꺼져 간다’이다(제47항).","type":"mc","choices":[{"mark":"①","text":"불이꺼져간다."},{"mark":"②","text":"불이 꺼져간다."},{"mark":"③","text":"불이 꺼져 간다."},{"mark":"④","text":"불이 꺼져간 다."},{"mark":"⑤","text":"불 이 꺼져 간다."}],"answer":3,"answerMark":"③","display":"③"},{"n":9,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 <b>잘난 채를</b> 한다.","explain":"‘체’는 의존 명사이므로 띄어 쓴다(제42항). 원문 예시도 ‘잘난 체를 한다’이다.","type":"sa","mode":"strict","display":"잘난 체를","answers":["잘난 체를"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":10,"kind":"규정·원칙","q":"“잘도 놀아만 나는구나.”에서 보조 용언 ‘나-’를 띄어 쓴 까닭은?","explain":"앞말에 조사가 붙거나 앞말이 합성 용언인 경우, 중간에 조사가 들어갈 적에는 보조 용언을 띄어 쓴다(제47항 다만).","type":"mc","choices":[{"mark":"①","text":"보조 용언은 붙여 쓰는 것이 원칙이므로"},{"mark":"②","text":"앞말에 조사가 붙었으므로"},{"mark":"③","text":"뒷말이 의존 명사이므로"},{"mark":"④","text":"앞말이 한 단어이므로"},{"mark":"⑤","text":"중간에 조사가 없으므로"}],"answer":2,"answerMark":"②","display":"②"}]},{"day":5,"date":"11/28","weekday":"토","topic":"제5·44·51·56항","level":"보통","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘솔직히’가 맞다. ‘-이’나 ‘-히’로 나는 말은 ‘-히’로 적는다(제51항 3).","type":"mc","choices":[{"mark":"①","text":"솔직이"},{"mark":"②","text":"가만히"},{"mark":"③","text":"간편히"},{"mark":"④","text":"무단히"},{"mark":"⑤","text":"각별히"}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 그 일을 <b>도저이</b> 해낼 수 없었다.","explain":"‘-이’나 ‘-히’로 나는 말이므로 ‘도저히’로 적는다(제51항 3).","type":"sa","mode":"loose","display":"도저히","answers":["도저히","도저이 → 도저히"],"hint":""},{"n":3,"kind":"규정·원칙","q":"제51항에 따라 ‘-이’로만 적는 것은?","explain":"‘깨끗이’는 ‘이’로만 나는 말이다(제51항 1). ‘정확히·족히·급히·엄격히’는 ‘히’로만 나는 말이다(제51항 2).","type":"mc","choices":[{"mark":"①","text":"깨끗이"},{"mark":"②","text":"정확히"},{"mark":"③","text":"족히"},{"mark":"④","text":"급히"},{"mark":"⑤","text":"엄격히"}],"answer":1,"answerMark":"①","display":"①"},{"n":4,"kind":"띄어쓰기","q":"수를 적을 때 띄어쓰기가 옳은 것은?","explain":"수는 ‘만’ 단위로 띄어 쓰고 그 아래 자리는 이어서 적는다(제44항).","type":"mc","choices":[{"mark":"①","text":"삼천팔백오십육만칠천팔백구십팔"},{"mark":"②","text":"삼천팔백오십육만 칠천팔백구십팔"},{"mark":"③","text":"삼천 팔백 오십 육만 칠천 팔백 구십 팔"},{"mark":"④","text":"삼천팔백오십육만 칠천 팔백구십팔"},{"mark":"⑤","text":"삼천팔백오십육만칠천 팔백구십팔"}],"answer":2,"answerMark":"②","display":"②"},{"n":5,"kind":"띄어쓰기","q":"다음 수를 제44항에 맞게 띄어 쓰시오.\n12억3456만7898","explain":"‘만’ 단위마다 끊어 쓰는 것이 원칙이다(제44항). 숫자로 적을 때도 마찬가지이다.","type":"sa","mode":"strict","display":"12억 3456만 7898","answers":["12억 3456만 7898"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":6,"kind":"혼동 어휘","q":"굵게 표시한 부분이 옳은 문장은?","explain":"물건이나 일의 내용을 가리지 아니하는 뜻은 ‘-든지’로 적는다(제56항 2). ④⑤는 지난 일이므로 ‘놀랐던지’, ‘잘하던데’로 적어야 한다.","type":"mc","choices":[{"mark":"①","text":"배<b>든지</b> 사과<b>던지</b> 마음대로 먹어라."},{"mark":"②","text":"배<b>던지</b> 사과<b>든지</b> 마음대로 먹어라."},{"mark":"③","text":"배<b>든지</b> 사과<b>든지</b> 마음대로 먹어라."},{"mark":"④","text":"얼마나 놀랐<b>든지</b> 몰라."},{"mark":"⑤","text":"그 사람 말 잘하<b>든데</b>!"}],"answer":3,"answerMark":"③","display":"③"},{"n":7,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n얼마나 <b>놀랬던지</b> 몰라.","explain":"지난 일을 나타내는 어미는 ‘-더라, -던’이므로 ‘놀랐던지’로 적는다(제56항 1).","type":"sa","mode":"loose","display":"놀랐던지","answers":["놀랐던지","놀랬던지 → 놀랐던지"],"hint":""},{"n":8,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘ㄴ’ 받침 뒤의 된소리는 된소리로 적으므로 ‘산뜻하다’가 맞다(제5항 2).","type":"mc","choices":[{"mark":"①","text":"산듯하다"},{"mark":"②","text":"잔뜩"},{"mark":"③","text":"살짝"},{"mark":"④","text":"훨씬"},{"mark":"⑤","text":"담뿍"}],"answer":1,"answerMark":"①","display":"①"},{"n":9,"kind":"규정·원칙","q":"제56항의 설명으로 옳은 것은?","explain":"제56항 1은 ‘-더라, -던’(지난 일), 2는 ‘-든지’(가리지 아니하는 뜻)의 표기를 정한다.","type":"mc","choices":[{"mark":"①","text":"‘-더라, -던’은 물건이나 일의 내용을 가리지 않는 뜻을 나타낸다."},{"mark":"②","text":"‘-더라, -던’은 지난 일을 나타내는 어미이고, ‘-든지’는 물건이나 일의 내용을 가리지 아니하는 뜻을 나타내는 조사와 어미이다."},{"mark":"③","text":"‘-든지’는 지난 일을, ‘-더라’는 가리지 않는 뜻을 나타낸다."},{"mark":"④","text":"‘-더라’와 ‘-든지’는 언제나 바꾸어 쓸 수 있다."},{"mark":"⑤","text":"‘-던지’는 지난 일을 나타내는 조사이다."}],"answer":2,"answerMark":"②","display":"②"},{"n":10,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘조리다’는 생선이나 고기 등을 양념에 졸이는 뜻이고, ‘졸이다’는 마음을 태우는 뜻이다(제57항).","type":"mc","choices":[{"mark":"①","text":"생선을 조린다."},{"mark":"②","text":"마음을 졸인다."},{"mark":"③","text":"통조림을 만들었다."},{"mark":"④","text":"생선을 졸인다."},{"mark":"⑤","text":"병조림을 담았다."}],"answer":4,"answerMark":"④","display":"④"}]},{"day":6,"date":"11/29","weekday":"일","topic":"제6·45·47·57항","level":"보통","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘마치다’는 일을 끝내는 뜻이므로 ‘마쳤다’로 적는다(제57항).","type":"mc","choices":[{"mark":"①","text":"벌써 일을 마치었다."},{"mark":"②","text":"여러 문제를 더 맞혔다."},{"mark":"③","text":"문이 저절로 닫혔다."},{"mark":"④","text":"우산을 받치고 갔다."},{"mark":"⑤","text":"언니의 목걸이를 빌렸다."}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n아이를 의자에 <b>안치고</b> 밥을 먹였다.","explain":"‘앉히다’는 사람을 자리에 앉게 하는 뜻이고, ‘안치다’는 밥을 솥에 안치는 뜻이다(제57항).","type":"sa","mode":"loose","display":"앉히고","answers":["앉히고","안치고 → 앉히고"],"hint":""},{"n":3,"kind":"혼동 어휘","q":"다음 문장의 빈칸에 알맞은 말을 고른 것은?\n그는 학생 ( ) 최선을 다했다.","explain":"자격을 나타낼 때는 ‘(으)로서’를 쓴다. ‘학생’은 받침이 있으므로 ‘으로서’가 맞다(제57항).","type":"mc","choices":[{"mark":"①","text":"으로서"},{"mark":"②","text":"으로써"},{"mark":"③","text":"로서"},{"mark":"④","text":"로써"},{"mark":"⑤","text":"으로 서"}],"answer":1,"answerMark":"①","display":"①"},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n이것은 <b>물으로서</b> 부족함이 없다.","explain":"‘물’은 받침이 없으므로 ‘로서’를 붙여 쓴다(제57항).","type":"sa","mode":"loose","display":"물로서","answers":["물로서","물으로서 → 물로서"],"hint":""},{"n":5,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"‘등’은 두 말을 이어 주거나 열거할 때 쓰는 말이므로 띄어 쓴다(제45항).","type":"mc","choices":[{"mark":"①","text":"책상, 걸상등이 있다."},{"mark":"②","text":"책상, 걸상 등이 있다."},{"mark":"③","text":"책상, 걸상 등이있다."},{"mark":"④","text":"책상,걸상 등 이 있다."},{"mark":"⑤","text":"책상, 걸상등 이 있다."}],"answer":2,"answerMark":"②","display":"②"},{"n":6,"kind":"규정·원칙","q":"“그 일은 할 만하다.”에서 ‘만하다’를 띄어 쓴 까닭은?","explain":"보조 용언은 띄어 씀을 원칙으로 한다(제47항).","type":"mc","choices":[{"mark":"①","text":"‘만하다’가 의존 명사이므로"},{"mark":"②","text":"보조 용언은 띄어 씀을 원칙으로 하므로"},{"mark":"③","text":"‘만하다’가 조사이므로"},{"mark":"④","text":"‘만하다’가 합성어이므로"},{"mark":"⑤","text":"‘만하다’가 단위 명사이므로"}],"answer":2,"answerMark":"②","display":"②"},{"n":7,"kind":"틀린 것","q":"제45항에 따라 띄어 쓰는 말로 틀린 것은?","explain":"‘겸’은 앞말과 띄어 써야 하므로 ‘국장 겸 과장’이 맞다(제45항).","type":"mc","choices":[{"mark":"①","text":"국장 겸과장"},{"mark":"②","text":"열 내지 스물"},{"mark":"③","text":"청군 대 백군"},{"mark":"④","text":"이사장 및 이사들"},{"mark":"⑤","text":"사과, 배 등속"}],"answer":1,"answerMark":"①","display":"①"},{"n":8,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 나를 <b>구지</b> 찾아왔다.","explain":"소리가 [구지]로 나도 원형 ‘ㄷ’을 밝혀 적는다(제6항).","type":"sa","mode":"loose","display":"굳이","answers":["굳이","구지 → 굳이"],"hint":""},{"n":9,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘걷히다’는 외상값이나 빚이 거두어지는 뜻이고, ‘거치다’는 어떤 곳을 지나가는 뜻이다(제57항).","type":"mc","choices":[{"mark":"①","text":"영월을 거쳐 왔다."},{"mark":"②","text":"외상값이 잘 걷혔다."},{"mark":"③","text":"두 고개를 거쳐 왔다."},{"mark":"④","text":"외상값이 잘 거쳤다."},{"mark":"⑤","text":"산을 거쳐 바다로 갔다."}],"answer":4,"answerMark":"④","display":"④"},{"n":10,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n그가 올듯도 하다.","explain":"보조 용언 ‘듯하다’는 띄어 쓰며, 중간에 조사 ‘도’가 들어갔으므로 더욱 띄어 쓴다(제47항 다만).","type":"sa","mode":"strict","display":"올 듯도 하다","answers":["올 듯도 하다"],"hint":"띄어쓰기까지 맞춰 쓰세요"}]},{"day":7,"date":"11/30","weekday":"월","topic":"1~6일 복습","level":"보통","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘어깨’가 맞다. 두 모음 사이의 된소리는 된소리로 적는다(제5항 1).","type":"mc","choices":[{"mark":"①","text":"어께"},{"mark":"②","text":"깍두기"},{"mark":"③","text":"산뜻하다"},{"mark":"④","text":"으뜸"},{"mark":"⑤","text":"잔뜩"}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘맏이’가 맞다. 소리가 [마지]로 나도 ‘ㄷ’을 밝혀 적는다(제6항).","type":"mc","choices":[{"mark":"①","text":"해돋이"},{"mark":"②","text":"마지"},{"mark":"③","text":"굳이"},{"mark":"④","text":"같이"},{"mark":"⑤","text":"닫히다"}],"answer":2,"answerMark":"②","display":"②"},{"n":3,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n바람이 <b>산듯하게</b> 불어온다.","explain":"‘ㄴ’ 받침 뒤의 된소리는 된소리로 적는다(제5항 2).","type":"sa","mode":"loose","display":"산뜻하게","answers":["산뜻하게","산듯하게 → 산뜻하게"],"hint":""},{"n":4,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n그가 떠난지가 오래다.","explain":"‘지’는 의존 명사이므로 띄어 쓰고, 조사 ‘가’는 ‘지’에 붙여 쓴다(제42항).","type":"sa","mode":"strict","display":"떠난 지가","answers":["떠난 지가"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":5,"kind":"규정·원칙","q":"두 음절로 된 한자어 가운데 제30항에 따라 사이시옷을 받치는 말을 두 개 쓰시오.","explain":"(숫자, 찻간, 횟수도 정답) 두 음절로 된 한자어 가운데 사이시옷을 받치는 예외 여섯 개에 해당한다(제30항 3).","type":"sa","mode":"set6","display":"곳간, 셋방","answers":["곳간","셋방","숫자","찻간","툇간","횟수"],"hint":""},{"n":6,"kind":"규정·원칙","q":"‘해돋이’를 ‘해도지’로 적지 않는 근거가 되는 규정은?","explain":"구개음화 표기에 관한 규정은 제6항이다.","type":"mc","choices":[{"mark":"①","text":"제5항"},{"mark":"②","text":"제6항"},{"mark":"③","text":"제11항"},{"mark":"④","text":"제30항"},{"mark":"⑤","text":"제51항"}],"answer":2,"answerMark":"②","display":"②"},{"n":7,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"‘만큼’은 의존 명사이므로 앞말과 띄어 쓴다(제42항).","type":"mc","choices":[{"mark":"①","text":"먹을만큼 먹어라."},{"mark":"②","text":"먹을 만큼 먹어라."},{"mark":"③","text":"먹을 만큼먹어라."},{"mark":"④","text":"먹을만 큼 먹어라."},{"mark":"⑤","text":"먹 을 만큼 먹어라."}],"answer":2,"answerMark":"②","display":"②"},{"n":8,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n그는 나도 할수 있다고 말했다.","explain":"‘수’는 의존 명사이므로 띄어 쓴다(제42항).","type":"sa","mode":"strict","display":"할 수","answers":["할 수"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":9,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 문장은?","explain":"약속에는 ‘반드시(틀림없이 꼭)’를 쓴다. ‘반듯이’는 기울지 않게 바르게라는 뜻이다(제57항).","type":"mc","choices":[{"mark":"①","text":"그는 벌써 숙제를 마쳤다."},{"mark":"②","text":"시험 문제를 모두 맞혔다."},{"mark":"③","text":"약속은 반듯이 지켰다."},{"mark":"④","text":"밥을 솥에 안쳤다."},{"mark":"⑤","text":"문이 저절로 닫혔다."}],"answer":3,"answerMark":"③","display":"③"},{"n":10,"kind":"규정·원칙","q":"제1항에 따라 형태소를 밝혀 적는 것이 의미 파악에 효과적인 까닭을 한 문장으로 서술하시오.","explain":"","type":"sa","mode":"narrative","display":"뜻을 가진 부분의 형태가 일정하게 유지되어 단어의 뜻을 쉽게 파악할 수 있기 때문이다. (제1항이 어법에 맞게 적도록 한 까닭)","answers":[]}]},{"day":8,"date":"12/01","weekday":"화","topic":"제11·30·48·49항","level":"보통~어려움","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"모음 뒤에 이어지는 ‘렬’은 ‘열’로 적으므로 ‘나열’이 맞다(제11항 다만).","type":"mc","choices":[{"mark":"①","text":"나렬"},{"mark":"②","text":"치열"},{"mark":"③","text":"진열"},{"mark":"④","text":"선열"},{"mark":"⑤","text":"비열"}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘표’가 모음으로 끝나므로 ‘투표율’로 적는다(제11항 다만). ‘합격률·법률’은 받침 뒤이므로 ‘률’이다.","type":"mc","choices":[{"mark":"①","text":"투표률"},{"mark":"②","text":"합격률"},{"mark":"③","text":"백분율"},{"mark":"④","text":"실패율"},{"mark":"⑤","text":"법률"}],"answer":1,"answerMark":"①","display":"①"},{"n":3,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 공포에 <b>전률</b>을 느꼈다.","explain":"‘ㄴ’ 받침 뒤에 이어지는 ‘률’은 ‘율’로 적는다(제11항 다만).","type":"sa","mode":"loose","display":"전율","answers":["전율","전률 → 전율"],"hint":""},{"n":4,"kind":"규정·원칙","q":"제11항에 따라 ‘률’이 ‘율’로 적히는 경우는?","explain":"모음이나 ‘ㄴ’ 받침 뒤에 이어지는 ‘렬, 률’은 ‘열, 율’로 적는다(제11항 다만).","type":"mc","choices":[{"mark":"①","text":"모음이나 ‘ㄴ’ 받침 뒤에 이어질 때"},{"mark":"②","text":"‘ㄱ’ 받침 뒤에 이어질 때"},{"mark":"③","text":"단어의 첫머리일 때"},{"mark":"④","text":"한자어끼리 결합할 때"},{"mark":"⑤","text":"뒷말의 첫소리가 된소리일 때"}],"answer":1,"answerMark":"①","display":"①"},{"n":5,"kind":"틀린 것","q":"다음 중 사이시옷이 바르게 쓰이지 않은 것은?","explain":"‘초점(焦點)’은 한자어끼리 이루어진 말이므로 사이시옷을 받치지 않는다(제30항).","type":"mc","choices":[{"mark":"①","text":"촛점"},{"mark":"②","text":"곳간"},{"mark":"③","text":"숫자"},{"mark":"④","text":"찻간"},{"mark":"⑤","text":"횟수"}],"answer":1,"answerMark":"①","display":"①"},{"n":6,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 그 일의 <b>댓가</b>를 치렀다.","explain":"‘대가(代價)’도 한자어끼리 이루어진 말이므로 사이시옷을 쓰지 않는다(제30항).","type":"sa","mode":"loose","display":"대가","answers":["대가","댓가 → 대가"],"hint":""},{"n":7,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"성과 이름은 붙여 쓰고, 덧붙는 호칭어는 띄어 쓰므로 ‘채영신 씨’가 맞다(제48항).","type":"mc","choices":[{"mark":"①","text":"채영신씨"},{"mark":"②","text":"채영신 씨"},{"mark":"③","text":"채 영신 씨"},{"mark":"④","text":"채영 신 씨"},{"mark":"⑤","text":"채 영신씨"}],"answer":2,"answerMark":"②","display":"②"},{"n":8,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n최치원선생은 신라의 학자이다.","explain":"성과 이름은 붙여 쓰고 호칭어 ‘선생’은 띄어 쓴다(제48항).","type":"sa","mode":"strict","display":"최치원 선생은","answers":["최치원 선생은"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":9,"kind":"규정·원칙","q":"성명 이외의 고유 명사의 띄어쓰기로 옳은 설명은?","explain":"성명 이외의 고유 명사는 단어별로 띄어 씀을 원칙으로 하되 단위별로 띄어 쓸 수 있다(제49항).","type":"mc","choices":[{"mark":"①","text":"반드시 붙여 쓴다."},{"mark":"②","text":"단어별로 띄어 씀을 원칙으로 하되 단위별로 띄어 쓸 수 있다."},{"mark":"③","text":"단위별로 띄어 씀이 원칙이다."},{"mark":"④","text":"언제나 한 글자씩 띄어 쓴다."},{"mark":"⑤","text":"외래어일 때만 띄어 쓴다."}],"answer":2,"answerMark":"②","display":"②"},{"n":10,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘해님’이 맞다. 사이시옷은 합성어에 받치므로(제30항), 높임의 접미사 ‘-님’이 붙은 파생어 ‘해님’에는 쓰지 않는다.","type":"mc","choices":[{"mark":"①","text":"해님"},{"mark":"②","text":"햇님"},{"mark":"③","text":"나뭇잎"},{"mark":"④","text":"냇물"},{"mark":"⑤","text":"잇몸"}],"answer":2,"answerMark":"②","display":"②"}]},{"day":9,"date":"12/02","weekday":"수","topic":"제46·53·54·57항","level":"보통~어려움","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"어미 ‘-게’는 예사소리로 적으므로 ‘할게’가 맞다(제53항).","type":"mc","choices":[{"mark":"①","text":"할께"},{"mark":"②","text":"할게"},{"mark":"③","text":"갈게"},{"mark":"④","text":"먹을게"},{"mark":"⑤","text":"도와 줄게"}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"접미사 ‘-꾼’은 된소리로 적으므로 ‘심부름꾼’이 맞다(제54항).","type":"mc","choices":[{"mark":"①","text":"심부름꾼"},{"mark":"②","text":"일꾼"},{"mark":"③","text":"장난꾼"},{"mark":"④","text":"지게꾼"},{"mark":"⑤","text":"심부름군"}],"answer":5,"answerMark":"⑤","display":"⑤"},{"n":3,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n이제 집에 <b>갈께</b>.","explain":"어미 ‘-게’는 예사소리로 적는다(제53항).","type":"sa","mode":"loose","display":"갈게","answers":["갈게","갈께 → 갈게"],"hint":""},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그런 일은 하지 말아야 <b>할껄</b>.","explain":"어미 ‘-걸’은 예사소리로 적는다(제53항).","type":"sa","mode":"loose","display":"할걸","answers":["할걸","할껄 → 할걸"],"hint":""},{"n":5,"kind":"규정·원칙","q":"제53항에 따라 된소리로 적는 의문형 어미는?","explain":"의문형 어미 ‘-(으)ㄹ까, -(으)ㄹ꼬’ 등은 된소리로 적는다(제53항 다만).","type":"mc","choices":[{"mark":"①","text":"-(으)ㄹ까"},{"mark":"②","text":"-(으)ㄹ거나"},{"mark":"③","text":"-(으)ㄹ지"},{"mark":"④","text":"-(으)ㄹ수록"},{"mark":"⑤","text":"-(으)ㄹ세"}],"answer":1,"answerMark":"①","display":"①"},{"n":6,"kind":"규정·원칙","q":"‘한잎 두잎’처럼 붙여 쓸 수 있는 까닭을 제46항에 근거하여 서술하시오.","explain":"","type":"sa","mode":"narrative","display":"단음절로 된 단어가 연이어 나타날 적에는 붙여 쓸 수 있기 때문이다. (제46항)","answers":[]},{"n":7,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘늘이다’는 길이를 길게 하는 뜻(고무줄을 늘인다)이고, 수효나 분량은 ‘늘리다’로 적는다(제57항).","type":"mc","choices":[{"mark":"①","text":"고무줄을 늘인다."},{"mark":"②","text":"수출량을 늘인다."},{"mark":"③","text":"진도가 너무 느리다."},{"mark":"④","text":"비용을 줄인다."},{"mark":"⑤","text":"수출량을 늘린다."}],"answer":2,"answerMark":"②","display":"②"},{"n":8,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 <b>공부하노라고</b> 밤을 새웠다.","explain":"원인을 나타낼 때는 ‘-하느라고’로 적는다. ‘하노라고’는 “하노라고 한 것이 이 모양이다”처럼 쓰인다(제57항).","type":"sa","mode":"loose","display":"공부하느라고","answers":["공부하느라고","공부하노라고 → 공부하느라고"],"hint":""},{"n":9,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n그는 큰것을 좋아한다.","explain":"‘것’은 의존 명사이므로 띄어 쓴다(제42항). 제46항은 단음절로 된 단어가 연이어 나올 때(이말 저말, 한잎 두잎) 붙여 쓸 수 있음을 허용한 것일 뿐이다.","type":"sa","mode":"strict","display":"큰 것을","answers":["큰 것을"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":10,"kind":"규정·원칙","q":"‘할게’를 ‘할께’로 적지 않는 까닭은?","explain":"제53항은 ‘-거나, -걸, -게, -수록, -지’ 같은 어미를 예사소리로 적도록 한다.","type":"mc","choices":[{"mark":"①","text":"어미 ‘-게’는 예사소리로 적으므로"},{"mark":"②","text":"어미 ‘-게’는 된소리로 적으므로"},{"mark":"③","text":"‘-게’가 체언이므로"},{"mark":"④","text":"‘-게’가 의존 명사이므로"},{"mark":"⑤","text":"‘-게’가 조사이므로"}],"answer":1,"answerMark":"①","display":"①"}]},{"day":10,"date":"12/03","weekday":"목","topic":"제5·41·42·57항","level":"어려움","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘너뿐이다’로 붙여 쓴다. 체언 뒤에서 ‘오직’의 뜻을 더하는 ‘뿐’은 조사이다(제41항).","type":"mc","choices":[{"mark":"①","text":"너 뿐이다."},{"mark":"②","text":"할 수 있다."},{"mark":"③","text":"먹을 만큼 먹어라."},{"mark":"④","text":"떠난 지가 오래다."},{"mark":"⑤","text":"아는 바를 말해라."}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"고쳐 쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n너 밖에 없다.","explain":"‘밖에’는 조사이므로 앞말에 붙여 쓴다(제41항).","type":"sa","mode":"strict","display":"너밖에","answers":["너밖에"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":3,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 문장은?","explain":"까닭을 나타내는 어미는 ‘-므로’이다. ‘-(ㅁ)으로써’는 수단을 나타낼 때 쓴다(제57항).","type":"mc","choices":[{"mark":"①","text":"비가 옴으로 우산을 챙겨라."},{"mark":"②","text":"비가 오므로 우산을 챙겨라."},{"mark":"③","text":"그는 부지런하다. 그럼으로 잘 산다."},{"mark":"④","text":"서두르므로 실수가 많다."},{"mark":"⑤","text":"준비했으므로 걱정이 없다."}],"answer":1,"answerMark":"①","display":"①"},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n나는 책을 <b>읽으려</b> 도서관에 갔다.","explain":"목적을 나타낼 때는 ‘-(으)러’를 쓴다(제57항).","type":"sa","mode":"loose","display":"읽으러","answers":["읽으러","읽으려 → 읽으러"],"hint":""},{"n":5,"kind":"규정·원칙","q":"‘-(으)러’와 ‘-(으)려’의 구별로 옳은 것은?","explain":"‘-(으)러’는 목적(공부하러 간다), ‘-(으)려’는 의도(서울 가려 한다)를 나타낸다(제57항).","type":"mc","choices":[{"mark":"①","text":"‘-(으)러’는 의도를, ‘-(으)려’는 목적을 나타낸다."},{"mark":"②","text":"‘-(으)러’는 목적을, ‘-(으)려’는 의도를 나타낸다."},{"mark":"③","text":"둘 다 목적만 나타낸다."},{"mark":"④","text":"둘 다 의도만 나타낸다."},{"mark":"⑤","text":"언제나 바꾸어 써도 뜻이 같다."}],"answer":2,"answerMark":"②","display":"②"},{"n":6,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"‘바’는 의존 명사이므로 앞말과 띄어 쓴다(제42항).","type":"mc","choices":[{"mark":"①","text":"아는 바를 말해라."},{"mark":"②","text":"아는바를 말해라."},{"mark":"③","text":"아는 바 를 말해라."},{"mark":"④","text":"아는바 를 말해라."},{"mark":"⑤","text":"아 는 바를 말해라."}],"answer":1,"answerMark":"①","display":"①"},{"n":7,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘담뿍’이 맞다. ‘ㅁ’ 받침 뒤의 된소리는 된소리로 적는다(제5항 2).","type":"mc","choices":[{"mark":"①","text":"훨씬"},{"mark":"②","text":"잔뜩"},{"mark":"③","text":"살짝"},{"mark":"④","text":"담북"},{"mark":"⑤","text":"산뜻하다"}],"answer":4,"answerMark":"④","display":"④"},{"n":8,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n그는 아는체를 했다.","explain":"‘체’는 의존 명사이므로 띄어 쓴다(제42항).","type":"sa","mode":"strict","display":"아는 체를","answers":["아는 체를"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":9,"kind":"규정·원칙","q":"앞말과 띄어 쓰는 ‘수, 만큼, 바, 지, 체’를 이르는 말은?","explain":"앞말과 띄어 쓰는 ‘것, 수, 만큼, 바, 지, 체’ 등은 의존 명사이다(제42항).","type":"mc","choices":[{"mark":"①","text":"의존 명사"},{"mark":"②","text":"조사"},{"mark":"③","text":"접미사"},{"mark":"④","text":"어미"},{"mark":"⑤","text":"합성어"}],"answer":1,"answerMark":"①","display":"①"},{"n":10,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 <b>믿으므로</b> 산 보람을 느꼈다.","explain":"수단을 나타내므로 ‘-(ㅁ)으로써’를 쓴다(제57항).","type":"sa","mode":"loose","display":"믿음으로써","answers":["믿음으로써","믿으므로 → 믿음으로써"],"hint":""}]},{"day":11,"date":"12/04","weekday":"금","topic":"4~6일 복습","level":"어려움","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘되었다’가 줄어 ‘됐다’로 적는다. ‘됬다’는 쓰지 않는다(제35항).","type":"mc","choices":[{"mark":"①","text":"됬다"},{"mark":"②","text":"됐다"},{"mark":"③","text":"봤다"},{"mark":"④","text":"줬다"},{"mark":"⑤","text":"갔습니다"}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘핥이다’가 맞다. 소리가 [할치다]로 나도 ‘ㅌ’을 밝혀 적는다(제6항).","type":"mc","choices":[{"mark":"①","text":"마지"},{"mark":"②","text":"굳이"},{"mark":"③","text":"해돋이"},{"mark":"④","text":"핥이다"},{"mark":"⑤","text":"할치다"}],"answer":5,"answerMark":"⑤","display":"⑤"},{"n":3,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 준 대로 적으시오.\n그는 아픔을 <b>견디어</b> 냈다.","explain":"‘ㅣ’ 뒤에 ‘-어’가 와서 ‘ㅕ’로 줄었으므로 준 대로 적는다(제36항).","type":"sa","mode":"loose","display":"견뎌","answers":["견뎌","견디어 → 견뎌"],"hint":""},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 준 대로 적으시오.\n그는 나를 <b>가르치어</b> 주었다.","explain":"‘ㅣ’ 뒤에 ‘-어’가 와서 ‘ㅕ’로 줄었으므로 준 대로 적는다(제36항).","type":"sa","mode":"loose","display":"가르쳐","answers":["가르쳐","가르치어 → 가르쳐"],"hint":""},{"n":5,"kind":"틀린 것","q":"제43항에 따라 단위를 나타내는 명사를 띄어 쓴 것으로 틀린 것은?","explain":"단위를 나타내는 명사는 띄어 쓰므로 ‘연필 한 자루’로 적어야 한다(제43항).","type":"mc","choices":[{"mark":"①","text":"연필 한자루"},{"mark":"②","text":"소 한 마리"},{"mark":"③","text":"옷 한 벌"},{"mark":"④","text":"신 두 켤레"},{"mark":"⑤","text":"북어 한 쾌"}],"answer":1,"answerMark":"①","display":"①"},{"n":6,"kind":"띄어쓰기","q":"제43항에 따라 수를 적을 때 띄어쓰기가 옳은 것은?","explain":"수를 적을 때는 숫자와 단위를 붙여 쓸 수 있다(제43항 다만).","type":"mc","choices":[{"mark":"①","text":"80 원, 10 개"},{"mark":"②","text":"80원, 10개"},{"mark":"③","text":"80 원, 10개"},{"mark":"④","text":"80원, 10 개"},{"mark":"⑤","text":"80 원,10개"}],"answer":2,"answerMark":"②","display":"②"},{"n":7,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n집 한채를 샀다.","explain":"‘채’는 집을 세는 단위 명사이므로 띄어 쓴다(제43항).","type":"sa","mode":"strict","display":"한 채","answers":["한 채"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":8,"kind":"혼동 어휘","q":"보조 용언의 띄어쓰기 원칙에 맞는 것은?","explain":"보조 용언은 띄어 씀을 원칙으로 한다(제47항).","type":"mc","choices":[{"mark":"①","text":"내 힘으로 막아냈다."},{"mark":"②","text":"내 힘으로 막아 냈다."},{"mark":"③","text":"내힘으로 막아냈다."},{"mark":"④","text":"내 힘으로막아 냈다."},{"mark":"⑤","text":"내 힘으로 막아냈 다."}],"answer":2,"answerMark":"②","display":"②"},{"n":9,"kind":"고쳐 쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n그 일은 할만하다.","explain":"‘만하다’는 보조 용언이므로 띄어 씀을 원칙으로 한다(제47항).","type":"sa","mode":"strict","display":"할 만하다","answers":["할 만하다"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":10,"kind":"규정·원칙","q":"‘핥이다’를 ‘할치다’로 적지 않는 근거가 되는 규정은?","explain":"구개음화 표기에 관한 규정은 제6항이다.","type":"mc","choices":[{"mark":"①","text":"제5항"},{"mark":"②","text":"제6항"},{"mark":"③","text":"제11항"},{"mark":"④","text":"제30항"},{"mark":"⑤","text":"제47항"}],"answer":2,"answerMark":"②","display":"②"}]},{"day":12,"date":"12/05","weekday":"토","topic":"실전 모의","level":"어려움","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"‘어깨’가 맞다. 두 모음 사이의 된소리는 된소리로 적는다(제5항 1).","type":"mc","choices":[{"mark":"①","text":"어께"},{"mark":"②","text":"나룻배"},{"mark":"③","text":"해돋이"},{"mark":"④","text":"반드시"},{"mark":"⑤","text":"숫자"}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘마치다’는 일을 끝내는 뜻이므로 ‘마쳤다’로 적는다(제57항).","type":"mc","choices":[{"mark":"①","text":"벌써 일을 마치었다."},{"mark":"②","text":"외상값이 잘 걷혔다."},{"mark":"③","text":"문이 저절로 닫혔다."},{"mark":"④","text":"그는 공부하느라고 밤을 새웠다."},{"mark":"⑤","text":"우리는 영월을 거쳐 왔다."}],"answer":1,"answerMark":"①","display":"①"},{"n":3,"kind":"고쳐 쓰기","q":"다음 문장에서 굵게 표시한 두 곳을 맞춤법에 맞게 고치시오.\n그는 나를 <b>구지</b> 찾아와 <b>어께</b>를 두드렸다.","explain":"‘굳이’는 소리가 [구지]여도 ‘ㄷ’을 밝혀 적고(제6항), ‘어깨’는 두 모음 사이의 된소리이므로 된소리로 적는다(제5항 1).","type":"sa","mode":"loose","display":"굳이, 어깨","answers":["굳이, 어깨"],"hint":""},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장에서 굵게 표시한 두 곳을 맞춤법에 맞게 고치시오.\n이제 집에 <b>갈께</b>. 너도 같이 <b>갈수</b> 있지?","explain":"어미 ‘-게’는 예사소리로 적고(제53항), 의존 명사 ‘수’는 띄어 쓴다(제42항).","type":"sa","mode":"strict","display":"갈게, 갈 수","answers":["갈게, 갈 수"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":5,"kind":"규정·원칙","q":"‘숫자’에 사이시옷을 받치는 까닭을 제30항에 근거하여 서술하시오.","explain":"","type":"sa","mode":"narrative","display":"‘숫자’는 두 음절로 된 한자어 가운데 뒷말의 첫소리가 된소리로 나는 예외 여섯 개에 들어 사이시옷을 받치기 때문이다. (제30항 3)","answers":[]},{"n":6,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 것은?","explain":"단위 명사 ‘대’는 띄어 쓰고, 뒤에 붙은 조사 ‘가’는 ‘대’에 붙여 쓴다(제43항).","type":"mc","choices":[{"mark":"①","text":"차 한대가 지나갔다."},{"mark":"②","text":"차 한 대가 지나갔다."},{"mark":"③","text":"차한 대가 지나갔다."},{"mark":"④","text":"차 한대 가 지나갔다."},{"mark":"⑤","text":"차 한 대 가 지나갔다."}],"answer":2,"answerMark":"②","display":"②"},{"n":7,"kind":"띄어쓰기","q":"다음 문장의 띄어쓰기를 바르게 고치시오.\n비가 올듯하다.","explain":"보조 용언 ‘듯하다’는 띄어 씀을 원칙으로 한다(제47항).","type":"sa","mode":"strict","display":"올 듯하다","answers":["올 듯하다"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":8,"kind":"혼동 어휘","q":"굵게 표시한 말이 옳게 쓰인 문장은?","explain":"‘절이다’는 소금에 담그는 뜻, ‘저리다’는 감각이 없어지는 뜻이다. ‘조리다’는 양념에 졸이는 것, ‘졸이다’는 마음을 태우는 것이다(제57항).","type":"mc","choices":[{"mark":"①","text":"낡은 책상을 새것으로 <b>가름</b>하였다."},{"mark":"②","text":"다친 다리가 <b>절린다</b>."},{"mark":"③","text":"김장 배추를 <b>절인다</b>."},{"mark":"④","text":"생선을 <b>졸인다</b>."},{"mark":"⑤","text":"마음을 <b>조린다</b>."}],"answer":3,"answerMark":"③","display":"③"},{"n":9,"kind":"혼동 어휘","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 어려운 문제도 척척 <b>마쳤다</b>.","explain":"답을 알아맞히는 뜻이므로 ‘맞혔다’로 적는다(제57항).","type":"sa","mode":"loose","display":"맞혔다","answers":["맞혔다","마쳤다 → 맞혔다"],"hint":""},{"n":10,"kind":"규정·원칙","q":"설명과 규정 번호의 연결이 옳은 것은?","explain":"제47항이 보조 용언의 띄어쓰기를 정한다. ①③④⑤의 규정 번호가 서로 바뀌어 있다(제41·42·43·48항).","type":"mc","choices":[{"mark":"①","text":"조사는 앞말에 붙여 쓴다 — 제42항"},{"mark":"②","text":"보조 용언은 띄어 씀을 원칙으로 한다 — 제47항"},{"mark":"③","text":"의존 명사는 띄어 쓴다 — 제41항"},{"mark":"④","text":"단위 명사는 붙여 쓴다 — 제43항"},{"mark":"⑤","text":"성과 이름은 띄어 쓴다 — 제48항"}],"answer":2,"answerMark":"②","display":"②"}]},{"day":13,"date":"12/06","weekday":"일","topic":"최종 종합","level":"가장 어려움","questions":[{"n":1,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 것은?","explain":"모음 뒤의 ‘렬’은 ‘열’로 적으므로 ‘나열’이 맞다(제11항 다만).","type":"mc","choices":[{"mark":"①","text":"나렬"},{"mark":"②","text":"백분율"},{"mark":"③","text":"합격률"},{"mark":"④","text":"법률"},{"mark":"⑤","text":"치열"}],"answer":1,"answerMark":"①","display":"①"},{"n":2,"kind":"틀린 것","q":"다음 중 맞춤법이 틀린 문장은?","explain":"약속에는 ‘반드시’를 쓴다. ‘반듯이’는 기울지 않게 바르게라는 뜻이다(제57항).","type":"mc","choices":[{"mark":"①","text":"약속은 반듯이 지켜라."},{"mark":"②","text":"고개를 반듯이 들어라."},{"mark":"③","text":"그는 문제를 모두 맞혔다."},{"mark":"④","text":"밥을 솥에 안쳤다."},{"mark":"⑤","text":"아이를 윗자리에 앉혔다."}],"answer":1,"answerMark":"①","display":"①"},{"n":3,"kind":"고쳐 쓰기","q":"다음 문장에서 굵게 표시한 두 곳을 맞춤법에 맞게 고치시오.\n그는 <b>류행하는</b> 노래를 들으며 <b>산듯하게</b> 웃었다.","explain":"‘류’가 첫머리에 왔으므로 ‘유행’(제11항), ‘ㄴ’ 받침 뒤의 된소리는 된소리로 적으므로 ‘산뜻하게’(제5항 2)이다.","type":"sa","mode":"loose","display":"유행하는, 산뜻하게","answers":["유행하는, 산뜻하게"],"hint":""},{"n":4,"kind":"고쳐 쓰기","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그 일의 <b>댓가</b>를 치르고 나서야 마음을 놓았다.","explain":"한자어끼리 이루어진 말이므로 사이시옷을 쓰지 않는다(제30항).","type":"sa","mode":"loose","display":"대가","answers":["대가","댓가 → 대가"],"hint":""},{"n":5,"kind":"규정·원칙","q":"제5항과 제6항을 함께 적용한 설명으로 옳은 것은?","explain":"‘ㄷ,ㅌ’이 ‘ㅈ,ㅊ’으로 소리 나더라도 ‘ㄷ,ㅌ’으로 적는다(제6항). ①③④⑤는 모두 규정과 반대이다.","type":"mc","choices":[{"mark":"①","text":"‘같이’는 ‘ㅌ’ 받침 뒤이므로 ‘가치’로 적는다."},{"mark":"②","text":"‘같이’는 소리가 [가치]로 나도 ‘같이’로 적는다."},{"mark":"③","text":"‘국수’는 ‘ㄱ’ 받침 뒤이므로 ‘국쑤’로 적는다."},{"mark":"④","text":"‘어깨’는 두 모음 사이이므로 ‘어께’로 적는다."},{"mark":"⑤","text":"‘산뜻하다’는 ‘ㄴ’ 받침 뒤이므로 ‘산듯하다’로 적는다."}],"answer":2,"answerMark":"②","display":"②"},{"n":6,"kind":"띄어쓰기","q":"띄어쓰기가 옳은 문장은?","explain":"‘도’는 조사이므로 ‘나도’로 붙이고, ‘수’는 의존 명사이므로 띄어 쓴다(제41항·제42항).","type":"mc","choices":[{"mark":"①","text":"그는 나도할 수 있다고 말했다."},{"mark":"②","text":"그는 나도 할수 있다고 말했다."},{"mark":"③","text":"그는 나도 할 수 있다고 말했다."},{"mark":"④","text":"그는 나도 할 수있다고 말했다."},{"mark":"⑤","text":"그는나도 할 수 있다고 말했다."}],"answer":3,"answerMark":"③","display":"③"},{"n":7,"kind":"띄어쓰기","q":"다음 수를 제44항에 맞게 띄어 쓰시오.\n12억3456만7898원","explain":"수는 ‘만’ 단위로 띄어 쓴다(제44항). 단위 ‘원’은 숫자에 붙여 쓴다(제43항 다만).","type":"sa","mode":"strict","display":"12억 3456만 7898원","answers":["12억 3456만 7898원"],"hint":"띄어쓰기까지 맞춰 쓰세요"},{"n":8,"kind":"혼동 어휘","q":"다음 중 맞춤법이 틀린 문장은?","explain":"‘조리다’는 생선 등을 양념에 졸이는 뜻이고, ‘졸이다’는 마음을 태우는 뜻이다. ‘생선을 조렸다’, ‘마음을 졸였다’로 구별한다(제57항).","type":"mc","choices":[{"mark":"①","text":"외상값이 잘 걷혔다."},{"mark":"②","text":"고무줄을 늘였다."},{"mark":"③","text":"수출량을 늘렸다."},{"mark":"④","text":"생선을 졸였다."},{"mark":"⑤","text":"마음을 졸였다."}],"answer":4,"answerMark":"④","display":"④"},{"n":9,"kind":"혼동 어휘","q":"다음 문장의 굵게 표시한 부분을 맞춤법에 맞게 고치시오.\n그는 <b>답으로서</b> 셈을 대신했다.","explain":"수단을 나타내므로 ‘-(으)로써’를 쓴다(제57항).","type":"sa","mode":"loose","display":"답으로써","answers":["답으로써","답으로서 → 답으로써"],"hint":""},{"n":10,"kind":"규정·원칙","q":"제47항에 따라 보조 용언을 띄어 쓰지 않고 붙여 쓸 수 있는 경우를 한 문장으로 서술하시오.","explain":"","type":"sa","mode":"narrative","display":"보조 용언은 띄어 씀을 원칙으로 하되, 경우에 따라 붙여 씀도 허용한다. (제47항)","answers":[]}]}],"sheet":[{"title":"1. 기본 원칙과 소리","rows":[{"rule":"제1항 원칙","point":"표준어를 소리대로 적되, 어법에 맞도록 함","ex":"꽃이 / 꽃을","trap":"발음만 따라 적으면 형태소가 흔들림"},{"rule":"제5항 된소리","point":"두 모음 사이, ㄴ·ㄹ·ㅁ·ㅇ 받침 뒤는 된소리로 적음","ex":"어깨·오빠 / 산뜻하다·잔뜩","trap":"ㄱ·ㅂ 받침 뒤는 적지 않음 (국수·깍두기·법석)"},{"rule":"제6항 구개음화","point":"ㄷ·ㅌ 받침 뒤 ‘-이/-히’는 소리 나도 ㄷ·ㅌ으로 적음","ex":"맏이·같이 / 굳히다·닫히다","trap":"‘마지·가치·다치다’로 적으면 틀림"},{"rule":"제11항 두음법칙","point":"랴·려·례·료·류는 첫머리에서 야·여·예·요·유","ex":"양심·역사 / 유행·예의","trap":"첫머리 아닌 개량·협력은 본음대로!"},{"rule":"제30항 사이시옷","point":"순우리말 합성어, 순우리말+한자어에 받침","ex":"냇가·귓밥 / 곳간·숫자","trap":"한자어끼리는 안 씀 (예외 6개: 곳간·셋방·숫자·찻간·툇간·횟수)"},{"rule":"제35항 준말","point":"ㅗ·ㅜ 어간에 ‘-아/-어’ 어울리면 준 대로 적음","ex":"보아→봐 / 주어→줘","trap":"‘됐다’가 맞고 ‘됬다’는 무조건 틀림"}],"items":[]},{"title":"2. 띄어쓰기 (제41~49항)","rows":[{"rule":"제41항 조사","point":"조사는 그 앞말에 붙여 씀","ex":"꽃이·꽃밖에 / 웃고만","trap":"‘꽃 이’처럼 띄면 틀림"},{"rule":"제42항 의존 명사","point":"것·수·만큼·만·대로·뿐·체는 띄어 씀","ex":"아는 것이 힘 / 할 수 있다","trap":"조사 ‘만·대로·뿐·만큼’은 붙임 (그 사람만)"},{"rule":"제43항 단위 명사","point":"단위를 나타내는 명사는 띄어 씀","ex":"차 한 대 / 꽃 한 송이","trap":"순서·숫자 뒤는 붙여 쓸 수 있음 (‘801호’)"},{"rule":"제44항 수","point":"수는 ‘만(萬)’ 단위로 띄어 씀","ex":"12억 3456만 7898","trap":"‘만’ 아래 자리는 이어서 붙임"},{"rule":"제45항 이어 주기","point":"겸·내지·대·등·및은 띄어 씀","ex":"국장 겸 과장 / 걸상 등이 있다","trap":"‘겸과장’·‘등이’로 붙이면 틀림"},{"rule":"제47항 보조 용언","point":"띄어 씀 원칙, 붙여 씀 허용","ex":"꺼져 간다 / 꺼져간다","trap":"앞말에 조사 붙으면 반드시 띄어 씀 (‘놀아만 나는구나’)"},{"rule":"제48항 성명","point":"성·이름·호는 붙이고 호칭·관직은 띄어 씀","ex":"채영신 씨 / 최치원 선생","trap":"‘채영신씨’·‘최치원선생’은 틀림"},{"rule":"제49항 고유 명사","point":"단어별 띄어 씀 원칙, 단위별 허용","ex":"이사벨 고등학교 / 이사벨고등학교","trap":"둘 다 허용임을 이용한 함정"}],"items":[]},{"title":"3. 그 밖의 것 (제51·53·56항)","rows":[{"rule":"제51항 ‘-이/-히’","point":"‘이’로만 나면 ‘-이’, ‘히’로만·둘 다면 ‘-히’","ex":"깨끗이·가까이 / 정확히·족히","trap":"‘깨끗히’는 틀림 (‘-하다’ 안 붙으면 ‘-이’)"},{"rule":"제53항 어미","point":"‘-거나·-걸·-게·-수록·-지’ 등은 예사소리","ex":"할게·할걸 / 할수록","trap":"의문형 ‘-ㄹ까·-ㄹ꼬’는 된소리 (‘할까’)"},{"rule":"제56항 ‘-더라/-던’","point":"지난 일은 ‘-더라·-던’","ex":"춥더라 / 얼마나 놀랐던지","trap":"‘-든지’와 뒤바꿔 내는 문제 주의"},{"rule":"제56항 ‘-든지’","point":"물건·일의 내용을 가리지 않는 조사·어미","ex":"배든지 사과든지 / 가든지 오든지","trap":"‘-던지’로 적으면 틀림"}],"items":[]},{"title":"4. 제57항 혼동 어휘표 (프린트 수록 18쌍)","rows":[{"rule":"가름 / 갈음","point":"둘로 나눔 (‘가름’) / 다른 것으로 대신함 (‘돌잔치를 갈음하다’)","ex":"","trap":""},{"rule":"거치다 / 걷히다","point":"지나거나 겪다 (‘수원을 거쳐’) / 걷다의 피동 (‘안개가 걷히기’)","ex":"","trap":""},{"rule":"걷잡다 / 겉잡다","point":"붙들어 잡다 (‘걷잡을 수 없이’) / 겉으로 대강 짐작 (‘겉잡아서 천 명’)","ex":"","trap":""},{"rule":"마치다 / 맞히다","point":"일을 끝냄 (‘일과를 마치고’) / 정답을 맞힘 (‘정답을 맞혔다’)","ex":"","trap":""},{"rule":"반드시 / 반듯이","point":"틀림없이 꼭 (‘반드시 봄이 온다’) / 기울지 않게 바르게 (‘반듯이 눕다’)","ex":"","trap":""},{"rule":"안치다 / 앉히다","point":"솥에 올리다 (‘떡을 안쳤다’) / 앉게 하다·버릇 가르치다 (‘앉혀 주셨다’)","ex":"","trap":""},{"rule":"이따가 / 있다가","point":"조금 뒤에 (‘이따가 만나자’) / 머무르다가 (‘며칠 더 있다가’)","ex":"","trap":""},{"rule":"저리다 / 절이다","point":"뼈·몸이 아리다 (‘발이 저리다’) / 소금·식초 배어들게 (‘배추를 절이다’)","ex":"","trap":""},{"rule":"-(으)로서 / -(으)로써","point":"지위·신분·자격 (‘친구로서’) / 재료·수단·도구 (‘말로써’)","ex":"","trap":""},{"rule":"-(으)러 / -(으)려","point":"동작의 목적 (‘책을 사러 간다’) / 의도·욕망 (‘친구를 만나려 한다’)","ex":"","trap":""}],"items":[]},{"title":"5. 시험 전날 5분 점검 — 함정 10개","rows":[],"items":["제5항: 된소리 예외는 ‘ㄱ·ㅂ 받침 뒤’뿐 (‘국수·깍두기·법석·갑자기’).","제6항: 소리가 ‘지·치’여도 원형 ‘ㄷ·ㅌ’으로 (‘맏이·해돋이·굳이·같이·굳히다’).","제11항: 두음법칙은 단어 첫머리에만 (‘선량·진리·개량’은 본음).","제11항: 모음·‘ㄴ’ 받침 뒤 ‘렬·률’은 ‘열·율’ (‘나열·백분율’ / ‘법률·행렬·성공률’).","제30항: 한자어끼리는 사이시옷 없음 (‘대가·초점’). 2음절 한자어 6개(‘곳간·셋방·숫자·찻간·툇간·횟수’)만 예외.","제35항: ‘되어’ → ‘돼’. ‘됬다’는 무조건 틀리고 ‘됐다’가 맞음.","제42항: ‘만·대로·뿐·만큼’ — 앞말이 체언이면 조사(붙임), 관형어(용언) 뒤면 의존명사(띄어 씀).","제47항: 보조용언은 붙여 써도 되지만 앞말에 조사가 붙으면 반드시 띄어 씀 (‘놀아만 나는구나’).","제51항: ‘-하다’ 붙는 어근(‘정확하다→정확히’), ‘-하다’ 안 붙으면 ‘-이’(‘깨끗이·곰곰이·일찍이’).","제56항: 지난 일 회상은 ‘-더라/-던’, 선택은 ‘-든지’."]}],"startDate":"2026-11-24","examDate":"2026-12-07"};</script>
+<script>
+(function(){
+"use strict";
+
+var KEY = "spellingQuiz.v1";
+var SET6 = ["곳간","셋방","숫자","찻간","툇간","횟수"];
+var app = document.getElementById("app");
+var sheetwrap = document.getElementById("sheetwrap");
+
+function esc(s){
+  return String(s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+  });
+}
+function pad(n){ return (n<10?"0":"")+n; }
+function ymd(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function todayStr(){ return ymd(new Date()); }
+function parseDay(s){ var p=s.split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+function todayDayNum(){
+  var diff = Math.round((parseDay(todayStr()) - parseDay(DATA.startDate)) / 86400000);
+  return Math.max(1, Math.min(13, diff + 1));
+}
+function daysToExam(){
+  return Math.round((parseDay(DATA.examDate) - parseDay(todayStr())) / 86400000);
+}
+
+/* ── 저장 ─────────────────────────────────────── */
+function loadStore(){
+  try{
+    var s = JSON.parse(localStorage.getItem(KEY) || "null");
+    if(s && typeof s === "object" && s.days) return s;
+  }catch(e){}
+  return {days:{}};
+}
+var store = loadStore();
+function saveStore(){
+  try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){}
+}
+
+/* ── 상태 ─────────────────────────────────────── */
+var view = {name:"home"};
+var quiz = null;
+
+function dayData(n){ return DATA.days[n-1]; }
+function currentQ(){
+  var d = dayData(quiz.day), n = quiz.queue[quiz.i];
+  for(var i=0;i<d.questions.length;i++) if(d.questions[i].n===n) return d.questions[i];
+  return null;
+}
+function stOf(n){
+  if(!quiz.st[n]) quiz.st[n] = {text:"", chosen:null, graded:false, correct:null};
+  return quiz.st[n];
+}
+
+/* ── 채점 ─────────────────────────────────────── */
+function normLoose(s){
+  return String(s||"").toLowerCase()
+    .replace(/[\s\u00a0]/g,"")
+    .replace(/[·.,!?"'`‘’“”()\[\]{}<>《》〈〉…~_\/\\:;→\-–—]/g,"");
+}
+function normStrict(s){
+  return String(s||"").toLowerCase()
+    .replace(/[·.,!?"'`‘’“”()\[\]{}<>《》〈〉…~_\/\\:;→\-–—]/g," ")
+    .replace(/\s+/g," ").trim();
+}
+function judge(q, raw){
+  var v = String(raw||"");
+  if(!v.trim()) return false;
+  if(q.mode === "set6"){
+    var seen = {}, hit = 0;
+    var parts = v.split(/[,·、\/\s]+/);
+    for(var i=0;i<parts.length;i++){
+      var p = parts[i].trim();
+      if(SET6.indexOf(p) >= 0 && !seen[p]){ seen[p]=1; hit++; }
+    }
+    return hit >= 2;
+  }
+  var f = q.mode === "strict" ? normStrict : normLoose;
+  var target = f(v);
+  if(!target) return false;
+  for(var j=0;j<q.answers.length;j++){
+    if(f(q.answers[j]) === target) return true;
+  }
+  return false;
+}
+
+/* ── 렌더: 홈 ─────────────────────────────────── */
+function recordOf(n){ return store.days[String(n)]; }
+
+function topbar(title, opts){
+  opts = opts || {};
+  var left = opts.home
+    ? '<button class="ic" data-act="home" aria-label="홈">&#8592;</button>'
+    : '<div class="brand"></div>';
+  return '<header class="top"><div class="top-in">'+left+
+    '<div class="top-t">'+esc(title)+'</div>'+
+    '<button class="ic txt" data-act="sheet">규정 카드</button></div>'+
+    (opts.progress != null ? '<div class="bar"><i style="width:'+opts.progress+'%"></i></div>' : '')+
+    '</header>';
+}
+
+function homeHTML(){
+  var today = todayDayNum();
+  var dd = daysToExam();
+  var done = 0;
+  for(var k in store.days) if(store.days[k] && typeof store.days[k].score === "number") done++;
+
+  var head = dd > 0 ? "한글 맞춤법 · 기말 " + dd + "일 전"
+           : dd === 0 ? "한글 맞춤법 · 기말 당일"
+           : "한글 맞춤법 · 기말 " + (-dd) + "일 지남";
+  var now = parseDay(todayStr());
+  var todayLabel = now < parseDay(DATA.startDate) ? "시작 전"
+                 : now > parseDay("2026-12-06") ? "복습"
+                 : "오늘";
+  var td = dayData(today);
+  var rec = recordOf(today);
+
+  var rows = "";
+  DATA.days.forEach(function(d){
+    var r = recordOf(d.day);
+    rows += '<li><button class="dayrow'+(d.day===today?" on":"")+'" data-act="start" data-day="'+d.day+'">'+
+      '<span class="dr-l"><b>Day '+d.day+'</b><span class="dr-d">'+d.date+" "+d.weekday+'</span></span>'+
+      '<span class="dr-s">'+(r && typeof r.score==="number" ? r.score+"/10" : "")+'</span>'+
+      '<span class="dr-t">'+esc(d.topic)+" · "+esc(d.level)+'</span>'+
+      '</button></li>';
+  });
+
+  return topbar("맞춤법 10문항") +
+    '<main class="wrap home">'+
+      '<p class="eyebrow">'+esc(head)+'</p>'+
+      '<section class="today">'+
+        '<div class="today-top"><span>'+todayLabel+'</span><span>'+td.date+" "+td.weekday+'</span></div>'+
+        '<div class="today-day">Day '+td.day+'</div>'+
+        '<div class="today-topic">'+esc(td.topic)+" · "+esc(td.level)+'</div>'+
+        '<button class="primary wide" data-act="start" data-day="'+td.day+'">'+
+          (rec && typeof rec.score==="number" ? "다시 풀기 · "+rec.score+"/10" : "10문항 풀기")+
+        '</button>'+
+      '</section>'+
+      '<div class="listhead"><span>Day 1 – 13</span><span>'+done+'일 완료</span></div>'+
+      '<ul class="days">'+rows+'</ul>'+
+      '<p class="foot-note">푼 기록과 정답률은 이 기기 브라우저에만 저장됩니다.</p>'+
+    '</main>';
+}
+
+/* ── 렌더: 문제 ───────────────────────────────── */
+function feedbackHTML(q, st){
+  if(!st.graded) return "";
+  var ok = st.correct === true, bad = st.correct === false;
+  var cls = ok ? "ok" : bad ? "no" : "neutral";
+  var label = ok ? "정답" : bad ? "오답" : "정답 확인";
+  var answer;
+  if(q.mode === "narrative"){
+    answer = '<div class="fb-a"><span class="lbl">모범 답안</span><span class="ans model">'+esc(q.display)+'</span></div>';
+  }else{
+    answer = '<div class="fb-a"><span class="lbl">정답</span><span class="ans">'+esc(q.display)+'</span></div>';
+  }
+  var judgeRow = '<div class="judge"><span>내 답 판정</span>'+
+    '<button class="jbtn'+(ok?" on":"")+'" data-act="judge" data-v="1">맞음</button>'+
+    '<button class="jbtn'+(bad?" on":"")+'" data-act="judge" data-v="0">틀림</button></div>';
+  return '<div class="fb '+cls+'" id="fb">'+
+    '<div class="fb-h">'+label+'</div>'+answer+
+    (q.explain ? '<p class="fb-x">'+q.explain+'</p>' : "")+
+    judgeRow+'</div>';
+}
+
+function answerAreaHTML(q, st){
+  if(q.type === "mc"){
+    var html = '<div class="choices">';
+    q.choices.forEach(function(c, i){
+      var mark = i+1, cls = "";
+      if(st.graded){
+        if(mark === q.answer) cls = "ok";
+        else if(mark === st.chosen) cls = "no";
+        else cls = "dim";
+      }
+      html += '<button class="choice '+cls+'" data-act="pick" data-i="'+mark+'"'+(st.graded?" disabled":"")+'>'+
+        '<span class="mk">'+c.mark+'</span><span>'+c.text+'</span></button>';
+    });
+    return html+"</div>";
+  }
+  var isNarr = q.mode === "narrative";
+  var input = '<input id="ans" class="ans-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"'+
+    ' enterkeyhint="done" placeholder="'+(isNarr?"한 문장으로 써 보세요":"답을 입력하세요")+'"'+
+    ' value="'+esc(st.text)+'"'+(st.graded?" disabled":"")+'>';
+  var actions = st.graded ? "" :
+    '<div class="ans-actions"><button class="primary" data-act="grade">확인</button>'+
+    '<button class="link" data-act="reveal">정답 보기</button></div>';
+  var hint = (!st.graded && q.hint) ? '<p class="ans-hint">'+esc(q.hint)+'</p>' : "";
+  var narrNote = (!st.graded && isNarr) ? '<p class="ans-hint">서술형은 모범 답안을 보고 스스로 맞음·틀림을 고를 수 있습니다.</p>' : "";
+  return '<div>'+input+hint+narrNote+actions+'</div>';
+}
+
+function quizHTML(){
+  var d = dayData(quiz.day);
+  var q = currentQ();
+  var st = stOf(q.n);
+  var total = quiz.queue.length;
+  var pct = Math.round((quiz.i / total) * 100);
+  var last = quiz.i === total - 1;
+  var foot = "";
+  if(st.graded && st.correct !== null){
+    foot = '<div class="foot"><button class="primary wide" data-act="next">'+
+      (last ? "결과 보기" : "다음 문제")+'</button></div>';
+  }else if(st.graded){
+    foot = '<p class="foot note">맞음·틀림을 골라 주세요.</p>';
+  }
+  return topbar("Day "+d.day+" · "+(quiz.i+1)+"/"+total, {home:true, progress:pct}) +
+    '<main class="wrap quiz">'+
+      '<div class="qmeta"><span class="qcount">'+(quiz.i+1)+" / "+total+'</span>'+
+        '<span class="qkind">'+esc(q.kind)+'</span></div>'+
+      '<div class="qtext">'+q.q.split("\n").join("<br>")+'</div>'+
+      answerAreaHTML(q, st)+
+      feedbackHTML(q, st)+
+      foot+
+    '</main>';
+}
+
+function renderQuiz(keep){
+  app.innerHTML = quizHTML();
+  var inp = document.getElementById("ans");
+  if(inp && !inp.disabled){
+    inp.addEventListener("keydown", function(e){
+      if(e.key === "Enter"){ e.preventDefault(); grade(); }
+    });
+  }
+  if(keep){
+    var fb = document.getElementById("fb");
+    if(fb && fb.getBoundingClientRect().top > window.innerHeight - 160){
+      fb.scrollIntoView({block:"center", behavior:"smooth"});
+    }
+  }else{
+    window.scrollTo(0,0);
+  }
+}
+
+/* ── 렌더: 결과 ───────────────────────────────── */
+function resultHTML(){
+  var d = dayData(quiz.day);
+  var last = quiz.last;
+  var rec = recordOf(quiz.day) || {score:0, wrong:[]};
+  var body;
+  if(last.retry){
+    body = '<div class="big"><b>'+last.correct+'</b><span>/'+last.queue+'</span></div>'+
+      '<p class="bigsub">다시 푼 '+last.queue+'문항 중 '+last.correct+'문항 정답</p>'+
+      '<div class="wrongbox'+(last.remaining?"":" none")+'">'+
+        (last.remaining ? "남은 오답 <b>"+rec.wrong.join(", ")+"</b>번" : "틀린 문제를 모두 고쳤습니다")+
+      '</div>';
+  }else{
+    var pct = Math.round((last.correct / last.queue) * 100);
+    body = '<div class="big"><b>'+pct+'</b><span>%</span></div>'+
+      '<p class="bigsub">'+last.queue+'문항 중 '+last.correct+'문항 정답</p>'+
+      '<div class="wrongbox'+(rec.wrong.length?" none":"")+'">'+
+        (rec.wrong.length ? "틀린 문제 <b>"+rec.wrong.join(", ")+"</b>번" : "틀린 문제가 없습니다")+
+      '</div>';
+  }
+  var btns = "";
+  if(rec.wrong && rec.wrong.length){
+    btns += '<button class="primary wide" data-act="retry">틀린 문제만 다시 풀기</button>';
+  }
+  btns += '<button class="ghost wide" data-act="home">홈으로</button>';
+
+  return topbar("Day "+d.day+" · 결과", {home:true}) +
+    '<main class="wrap result">'+
+      '<p class="eyebrow">Day '+d.day+" · "+d.date+" "+d.weekday+'</p>'+
+      body+
+      '<div class="rbtns">'+btns+'</div>'+
+      '<p class="foot-note">헷갈린 규정은 위 ‘규정 카드’에서 바로 확인할 수 있습니다.</p>'+
+    '</main>';
+}
+
+/* ── 화면 전환 ───────────────────────────────── */
+function render(){
+  if(view.name === "quiz"){ renderQuiz(false); return; }
+  if(view.name === "result"){ app.innerHTML = resultHTML(); window.scrollTo(0,0); return; }
+  app.innerHTML = homeHTML(); window.scrollTo(0,0);
+}
+
+function startDay(dayNum, onlyWrong){
+  var d = dayData(dayNum);
+  var rec = recordOf(dayNum);
+  var queue = onlyWrong && rec && rec.wrong && rec.wrong.length
+    ? rec.wrong.slice()
+    : d.questions.map(function(q){ return q.n; });
+  quiz = {day:dayNum, queue:queue, i:0, retry:!!onlyWrong, st:{}, last:null};
+  view = {name:"quiz"};
+  render();
+}
+
+function pick(mark){
+  var q = currentQ(), st = stOf(q.n);
+  if(st.graded) return;
+  st.chosen = mark;
+  st.graded = true;
+  st.correct = (mark === q.answer);
+  renderQuiz(true);
+}
+
+function grade(){
+  var q = currentQ(), st = stOf(q.n);
+  if(st.graded) return;
+  var inp = document.getElementById("ans");
+  var v = inp ? inp.value : st.text;
+  if(!String(v).trim()){ if(inp) inp.focus(); return; }
+  st.text = v;
+  st.graded = true;
+  st.correct = q.mode === "narrative" ? null : judge(q, v);
+  renderQuiz(true);
+}
+
+function reveal(){
+  var q = currentQ(), st = stOf(q.n);
+  var inp = document.getElementById("ans");
+  st.text = inp ? inp.value : st.text;
+  st.graded = true;
+  st.correct = null;
+  renderQuiz(true);
+}
+
+function judgeSelf(v){
+  var q = currentQ(), st = stOf(q.n);
+  st.correct = (v === "1");
+  renderQuiz(false);
+  window.scrollTo(0, Math.max(0, document.getElementById("fb").offsetTop - 260));
+}
+
+function next(){
+  var st = stOf(currentQ().n);
+  if(!st.graded || st.correct === null) return;
+  if(quiz.i < quiz.queue.length - 1){
+    quiz.i++;
+    renderQuiz(false);
+  }else{
+    finish();
+  }
+}
+
+function finish(){
+  var d = dayData(quiz.day);
+  var wrong = [], correct = 0;
+  quiz.queue.forEach(function(n){
+    var st = quiz.st[n];
+    if(st && st.correct === true) correct++;
+    else wrong.push(n);
+  });
+  var prev = store.days[String(d.day)] || {};
+  if(quiz.retry){
+    var remaining = (prev.wrong || []).filter(function(n){ return wrong.indexOf(n) >= 0; });
+    store.days[String(d.day)] = {score:10 - remaining.length, wrong:remaining, attempts:(prev.attempts||0)+1, ts:Date.now()};
+    quiz.last = {retry:true, queue:quiz.queue.length, correct:correct, remaining:remaining.length};
+  }else{
+    store.days[String(d.day)] = {score:correct, wrong:wrong.slice(), attempts:(prev.attempts||0)+1, ts:Date.now()};
+    quiz.last = {retry:false, queue:quiz.queue.length, correct:correct, remaining:wrong.length};
+  }
+  saveStore();
+  view = {name:"result"};
+  render();
+}
+
+function goHome(){
+  var answered = quiz && Object.keys(quiz.st).some(function(k){ return quiz.st[k].graded; });
+  if(view.name === "quiz" && answered && !window.confirm("지금까지 푼 답은 저장되지 않습니다. 그만 풀까요?")) return;
+  view = {name:"home"}; quiz = null; render();
+}
+
+/* ── 규정 카드 ───────────────────────────────── */
+function sheetHTML(){
+  var html = '<div class="sheet" role="dialog" aria-label="규정 암기 카드">'+
+    '<div class="sheet-top"><b>규정 암기 카드</b><button class="link" data-act="closeSheet">닫기</button></div>'+
+    '<div class="sheet-body">';
+  DATA.sheet.forEach(function(sec){
+    html += "<h3>"+esc(sec.title)+"</h3>";
+    if(sec.rows && sec.rows.length){
+      sec.rows.forEach(function(r){
+        html += '<div class="card">'+
+          (r.rule ? '<div class="cr">'+esc(r.rule)+'</div>' : "")+
+          '<div class="cp">'+esc(r.point)+'</div>'+
+          (r.ex ? '<div class="cl"><i>예</i><span class="v">'+esc(r.ex)+'</span></div>' : "")+
+          (r.trap ? '<div class="cl trap"><i>함정</i><span class="v">'+esc(r.trap)+'</span></div>' : "")+
+        '</div>';
+      });
+    }
+    if(sec.items && sec.items.length){
+      html += '<ol class="checks">';
+      sec.items.forEach(function(it){ html += "<li>"+esc(it)+"</li>"; });
+      html += "</ol>";
+    }
+  });
+  return html + "</div></div>";
+}
+
+function openSheet(){
+  sheetwrap.classList.add("open");
+  sheetwrap.setAttribute("aria-hidden","false");
+  document.body.style.overflow = "hidden";
+}
+function closeSheet(){
+  sheetwrap.classList.remove("open");
+  sheetwrap.setAttribute("aria-hidden","true");
+  document.body.style.overflow = "";
+}
+
+/* ── 이벤트 ──────────────────────────────────── */
+document.addEventListener("click", function(e){
+  var el = e.target.closest("[data-act]");
+  if(!el) return;
+  var act = el.getAttribute("data-act");
+  if(act === "start"){ startDay(+el.getAttribute("data-day"), false); }
+  else if(act === "pick"){ pick(+el.getAttribute("data-i")); }
+  else if(act === "grade"){ grade(); }
+  else if(act === "reveal"){ reveal(); }
+  else if(act === "judge"){ judgeSelf(el.getAttribute("data-v")); }
+  else if(act === "next"){ next(); }
+  else if(act === "retry"){ startDay(quiz.day, true); }
+  else if(act === "home"){ goHome(); }
+  else if(act === "sheet"){ openSheet(); }
+  else if(act === "closeSheet"){ closeSheet(); }
+});
+sheetwrap.addEventListener("click", function(e){
+  if(e.target === sheetwrap) closeSheet();
+});
+
+sheetwrap.innerHTML = sheetHTML();
+render();
+
+/* 테스트용 훅(화면에는 노출되지 않음) */
+window.__quiz = {
+  state: function(){ return {view:view.name, quiz:quiz, store:store}; },
+  start: startDay
+};
+})();
+</script>
+</body>
+</html>

@@ -38,7 +38,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ic{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--body);border-radius:8px}
 .ic:active{background:var(--soft)}
 .ic.txt{width:auto;padding:0 10px;font-size:14px;color:var(--muted);font-weight:500}
-.bar{height:2px;background:#eef0f2}
+.bar{height:2px;background:#eef0f2;max-width:520px;margin:0 auto}
 .bar i{display:block;height:100%;background:var(--accent);transition:width .22s ease}
 
 /* 홈 */
@@ -91,6 +91,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .ans-input{flex:1;min-width:0;font:inherit;font-size:17px;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--fg);min-height:50px}
 .ans-input:focus{outline:none;border-color:var(--accent)}
 .ans-input:disabled{background:var(--soft);color:var(--body);-webkit-text-fill-color:var(--body);opacity:1}
+.ans-input.narr{min-height:88px;line-height:1.65;resize:none;font-size:16px;padding:12px 14px;display:block;width:100%}
 .ans-input::placeholder{color:#a4a9b0}
 .ans-hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
 .ans-actions{display:flex;align-items:center;gap:6px;margin-top:12px}
@@ -259,16 +260,16 @@ function homeHTML(){
            : dd === 0 ? "한글 맞춤법 · 기말 당일"
            : "한글 맞춤법 · 기말 " + (-dd) + "일 지남";
   var now = parseDay(todayStr());
-  var todayLabel = now < parseDay(DATA.startDate) ? "시작 전"
-                 : now > parseDay("2026-12-06") ? "복습"
-                 : "오늘";
+  var startD = parseDay(DATA.startDate), endD = parseDay("2026-12-06");
+  var inRange = now >= startD && now <= endD;
+  var todayLabel = now < startD ? "시작 전" : now > endD ? "복습" : "오늘";
   var td = dayData(today);
   var rec = recordOf(today);
 
   var rows = "";
   DATA.days.forEach(function(d){
     var r = recordOf(d.day);
-    rows += '<li><button class="dayrow'+(d.day===today?" on":"")+'" data-act="start" data-day="'+d.day+'">'+
+    rows += '<li><button class="dayrow'+((inRange && d.day===today)?" on":"")+'" data-act="start" data-day="'+d.day+'">'+
       '<span class="dr-l"><b>Day '+d.day+'</b><span class="dr-d">'+d.date+" "+d.weekday+'</span></span>'+
       '<span class="dr-s">'+(r && typeof r.score==="number" ? r.score+"/10" : "")+'</span>'+
       '<span class="dr-t">'+esc(d.topic)+" · "+esc(d.level)+'</span>'+
@@ -297,7 +298,7 @@ function feedbackHTML(q, st){
   if(!st.graded) return "";
   var ok = st.correct === true, bad = st.correct === false;
   var cls = ok ? "ok" : bad ? "no" : "neutral";
-  var label = ok ? "정답" : bad ? "오답" : "정답 확인";
+  var label = ok ? "정답입니다" : bad ? "틀렸습니다" : "정답 확인";
   var answer;
   if(q.mode === "narrative"){
     answer = '<div class="fb-a"><span class="lbl">모범 답안</span><span class="ans model">'+esc(q.display)+'</span></div>';
@@ -329,9 +330,11 @@ function answerAreaHTML(q, st){
     return html+"</div>";
   }
   var isNarr = q.mode === "narrative";
-  var input = '<input id="ans" class="ans-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"'+
-    ' enterkeyhint="done" placeholder="'+(isNarr?"한 문장으로 써 보세요":"답을 입력하세요")+'"'+
-    ' value="'+esc(st.text)+'"'+(st.graded?" disabled":"")+'>';
+  var input = isNarr
+    ? '<textarea id="ans" class="ans-input narr" rows="3" spellcheck="false" autocapitalize="off" placeholder="한 문장으로 써 보세요"'+(st.graded?" disabled":"")+'>'+esc(st.text)+'</textarea>'
+    : '<input id="ans" class="ans-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"'+
+      ' enterkeyhint="done" placeholder="답을 입력하세요"'+
+      ' value="'+esc(st.text)+'"'+(st.graded?" disabled":"")+'>';
   var actions = st.graded ? "" :
     '<div class="ans-actions"><button class="primary" data-act="grade">확인</button>'+
     '<button class="link" data-act="reveal">정답 보기</button></div>';
@@ -368,7 +371,7 @@ function quizHTML(){
 function renderQuiz(keep){
   app.innerHTML = quizHTML();
   var inp = document.getElementById("ans");
-  if(inp && !inp.disabled){
+  if(inp && !inp.disabled && inp.tagName === "INPUT"){
     inp.addEventListener("keydown", function(e){
       if(e.key === "Enter"){ e.preventDefault(); grade(); }
     });

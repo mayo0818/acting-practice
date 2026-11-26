@@ -520,14 +520,34 @@
   }
 
   /* ── 곡 목록 ──────────────────────────────────────────── */
+  function songRow(s) {
+    return '<button class="songrow' + (s.id === state.songId ? ' on' : '') + '" data-song="' + s.id + '">' +
+      '<span class="songrow__t">' + esc(s.title) + '</span>' +
+      '<span class="songrow__m">' + esc([s.artist, s.key].filter(Boolean).join(' · ')) + '</span>' +
+      '</button>';
+  }
+
+  /* 한국어 / English / 연습 묶음으로 나눠 보여 준다 */
   function renderSongList() {
     var box = $('#songList');
-    box.innerHTML = state.songs.map(function (s) {
-      return '<button class="songrow' + (s.id === state.songId ? ' on' : '') + '" data-song="' + s.id + '">' +
-        '<span class="songrow__t">' + esc(s.title) + '</span>' +
-        '<span class="songrow__m">' + esc([s.artist, s.key].filter(Boolean).join(' · ')) + '</span>' +
-        '</button>';
-    }).join('');
+    var groups = (HB.Songs.groups || []).filter(function (g) { return g && g.id; });
+    if (!groups.length) groups = [{ id: 'ko', label: '한국어' }];
+    var used = {};
+    var html = '';
+
+    groups.forEach(function (g) {
+      var rows = state.songs.filter(function (s) { return (s.lang || 'ko') === g.id; });
+      if (!rows.length) return;
+      used[g.id] = true;
+      html += '<div class="songgroup"><span class="songgroup__l">' + esc(g.label) + '</span>' +
+        '<span class="songgroup__n">' + rows.length + '곡</span></div>';
+      html += rows.map(songRow).join('');
+    });
+
+    var rest = state.songs.filter(function (s) { return !used[s.lang || 'ko']; });
+    if (rest.length) html += rest.map(songRow).join('');
+
+    box.innerHTML = html || state.songs.map(songRow).join('');
   }
 
   function esc(s) {
@@ -597,6 +617,7 @@
       key: $('#fKey').value.trim(),
       preset: state.preset,
       bpm: state.bpm,
+      lang: editing ? (editing.lang || 'ko') : 'ko',
       builtin: editing ? !!editing.builtin : false,
       score: text
     };

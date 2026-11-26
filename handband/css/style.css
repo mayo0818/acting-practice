@@ -377,6 +377,18 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .songrow__m { font-size: 11px; color: var(--ink-dim); }
 .songrow.on { border-color: rgba(246, 205, 140, .6); background: rgba(246, 205, 140, .1); }
 
+.songgroup { display: flex; align-items: center; gap: 8px; margin: 12px 2px 1px; }
+.songgroup:first-child { margin-top: 0; }
+.songgroup__l {
+  font-size: 11px; font-weight: 600; letter-spacing: .08em;
+  color: rgba(246, 205, 140, .82);
+}
+.songgroup__n { font-size: 10.5px; color: var(--ink-dim); }
+.songgroup::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(255, 240, 220, .16), rgba(255, 240, 220, 0));
+}
+
 /* ── 편집 ──────────────────────────────────────────── */
 .fieldrow { display: flex; gap: 8px; }
 .field { display: flex; flex-direction: column; gap: 5px; flex: 1; margin-bottom: 9px; }

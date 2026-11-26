@@ -493,9 +493,9 @@
       ctx.font = '600 ' + fs + 'px "Pretendard Variable", "Pretendard", system-ui, sans-serif';
       ctx.fillText(label, lx, ly + 2);
 
-      ctx.fillStyle = 'rgba(255,248,238,.42)';
+      ctx.fillStyle = active ? 'rgba(255,248,238,.72)' : 'rgba(255,248,238,.36)';
       ctx.font = '500 11px "Pretendard Variable", system-ui, sans-serif';
-      ctx.fillText(String(i + 1).padStart(2, '0'), cx + Math.cos(mid) * (R - 26), cy + Math.sin(mid) * (R - 26));
+      ctx.fillText(String(i + 1).padStart(2, '0'), lx, ly - fs * 0.62 - 9);
     }
 
     // 바깥 링 + 음량 펄스

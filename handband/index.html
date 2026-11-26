@@ -83,19 +83,20 @@
 
       <div class="hud">
         <div class="hud__top">
-          <div class="hud__left">
-            <button class="pill" id="openScore">
-              <svg class="pill__ico"><use href="#i-score"/></svg>
-              <span id="topTitle">악보</span>
-            </button>
+          <div class="hud__bar">
+            <div class="hud__left">
+              <button class="pill" id="openScore">
+                <svg class="pill__ico"><use href="#i-score"/></svg>
+                <span id="topTitle">악보</span>
+              </button>
+            </div>
+            <div class="hud__right">
+              <button class="iconbtn" id="trackBtn" aria-pressed="true" title="손 추적 켜기/끄기"><svg><use href="#i-hand"/></svg><span class="dotstate" id="trackDot"></span></button>
+              <button class="iconbtn" id="openSound" title="사운드 · 촬영"><svg><use href="#i-sliders"/></svg></button>
+            </div>
           </div>
-          <div class="hud__right">
-            <button class="iconbtn" id="trackBtn" aria-pressed="true" title="손 추적 켜기/끄기"><svg><use href="#i-hand"/></svg><span class="dotstate" id="trackDot"></span></button>
-            <button class="iconbtn" id="openSound" title="사운드 · 촬영"><svg><use href="#i-sliders"/></svg></button>
-          </div>
+          <div class="partrow" id="partRow"></div>
         </div>
-
-        <div class="partrow" id="partRow"></div>
 
         <div class="hud__bottom">
           <button class="ghostchip" id="muteBtn" title="소리 끄기">코드 끄기</button>

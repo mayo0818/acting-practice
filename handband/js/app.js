@@ -1410,5 +1410,9 @@
   else init();
 
   /* 디버그용 */
-  window.__hb = { state: state, synth: synth, playChord: playChord, selectSong: selectSong };
+  window.__hb = {
+    state: state, synth: synth, playChord: playChord, selectSong: selectSong,
+    ls: function (k) { try { return localStorage.getItem(k); } catch (e) { return 'ERR:' + e.message; } },
+    lsSet: function (k, v) { try { localStorage.setItem(k, v); return 'ok'; } catch (e) { return 'ERR:' + e.message; } }
+  };
 })();

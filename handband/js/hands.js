@@ -1,6 +1,9 @@
 /* =========================================================
-   hands.js — MediaPipe HandLandmarker 래퍼
-   CDN 로드 실패 · 카메라 없음 → 조용히 포인터 모드로
+   hands.js — MediaPipe Hand Landmarker (양손)
+   · numHands: 2, VIDEO 모드
+   · 손가락 개수(엄지 포함 0~5)를 시간축 다수결로 안정화
+   · 좌/우 손 라벨 보정 스위치 (셀카 미러 기준)
+   CDN 로드 실패 · 카메라 없음 → 조용히 터치 모드로
    ========================================================= */
 (function (global) {
   'use strict';
@@ -9,14 +12,52 @@
   var BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@' + VERSION;
   var MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
 
+  var TIP = [4, 8, 12, 16, 20];
+  var PIP = [3, 6, 10, 14, 18];
+  var MCP = [2, 5, 9, 13, 17];
+
+  function dist(a, b) {
+    var dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy) || 0.0001;
+  }
+
+  /* 손 21점 → 편 손가락 5개 판정 */
+  function fingersOf(lm) {
+    var wrist = lm[0];
+    var palmSize = dist(lm[0], lm[9]) || 0.001;
+    var out = [false, false, false, false, false];
+
+    /* 엄지: 손목에서 멀어졌고 + 검지 관절에서 떨어졌으면 편 것 */
+    var thumbFar = dist(lm[4], wrist) > dist(lm[3], wrist) * 1.09;
+    var thumbOut = dist(lm[4], lm[5]) > palmSize * 0.62;
+    out[0] = thumbFar && thumbOut;
+
+    /* 나머지 네 손가락: 끝이 PIP보다 손목에서 멀면 편 것 */
+    for (var i = 1; i < 5; i++) {
+      var tip = lm[TIP[i]], pip = lm[PIP[i]], mcp = lm[MCP[i]];
+      var straight = dist(tip, wrist) > dist(pip, wrist) * 1.075;
+      var longEnough = dist(tip, mcp) > palmSize * 0.55;
+      out[i] = straight && longEnough;
+    }
+    return out;
+  }
+
+  function countOf(lm) {
+    var f = fingersOf(lm);
+    var n = 0;
+    for (var i = 0; i < f.length; i++) if (f[i]) n++;
+    return { count: n, extended: f };
+  }
+
   function HandTracker() {
     this.ready = false;
     this.loading = false;
     this.failed = false;
     this.landmarker = null;
     this.lastTs = 0;
-    this.raw = null;       // 21 랜드마크 (영상 좌표 0~1)
-    this._smooth = null;
+    this.swap = true;          // 셀카 미러 기준 보정
+    this._smooth = {};         // label → {hist:[], count:0, x:0, y:0, size:0}
+    this.hands = [];           // 최근 프레임 결과
   }
 
   HandTracker.prototype.load = function () {
@@ -31,10 +72,10 @@
           var opts = {
             baseOptions: { modelAssetPath: MODEL, delegate: 'GPU' },
             runningMode: 'VIDEO',
-            numHands: 1,
-            minHandDetectionConfidence: 0.5,
-            minHandPresenceConfidence: 0.5,
-            minTrackingConfidence: 0.5
+            numHands: 2,
+            minHandDetectionConfidence: 0.55,
+            minHandPresenceConfidence: 0.55,
+            minTrackingConfidence: 0.55
           };
           return mod.HandLandmarker.createFromOptions(vision, opts).catch(function () {
             opts.baseOptions.delegate = 'CPU';
@@ -57,15 +98,15 @@
     return this._pending;
   };
 
-  function dist2(a, b) {
-    var dx = a.x - b.x, dy = a.y - b.y;
-    return Math.sqrt(dx * dx + dy * dy);
-  }
+  HandTracker.prototype.reset = function () {
+    this._smooth = {};
+    this.hands = [];
+  };
 
-  /* 매 프레임 호출. 반환: {x,y,tipX,tipY,fingers,pinch,scale,landmarks} 또는 null */
+  /* 매 프레임 호출 — {hands:[{label,count,extended,x,y,size,landmarks}]} */
   HandTracker.prototype.detect = function (video, ts) {
-    if (!this.ready || !this.landmarker || !video) return null;
-    if (!video.videoWidth || video.readyState < 2) return null;
+    if (!this.ready || !this.landmarker || !video) return this.hands;
+    if (!video.videoWidth || video.readyState < 2) return this.hands;
 
     var t = ts || (global.performance ? performance.now() : Date.now());
     if (t <= this.lastTs) t = this.lastTs + 1;
@@ -75,73 +116,82 @@
     try {
       res = this.landmarker.detectForVideo(video, t);
     } catch (e) {
-      return null;
-    }
-    var lm = res && res.landmarks && res.landmarks[0];
-    if (!lm || lm.length < 21) {
-      this.raw = null;
-      return null;
+      return this.hands;
     }
 
-    // 손 크기 기준 정규화 (0: 손목, 9: 중지 MCP)
-    var dx = lm[9].x - lm[0].x, dy = lm[9].y - lm[0].y;
-    var scale = Math.sqrt(dx * dx + dy * dy) || 0.001;
+    var lms = (res && res.landmarks) || [];
+    var handedness = (res && res.handednesses) || [];
+    var out = [];
 
-    var palm = {
-      x: (lm[0].x * 0.18 + lm[5].x * 0.22 + lm[9].x * 0.24 + lm[13].x * 0.18 + lm[17].x * 0.18),
-      y: (lm[0].y * 0.18 + lm[5].y * 0.22 + lm[9].y * 0.24 + lm[13].y * 0.18 + lm[17].y * 0.18)
-    };
+    for (var i = 0; i < lms.length; i++) {
+      var lm = lms[i];
+      if (!lm || lm.length < 21) continue;
 
-    var px = lm[4].x - lm[8].x, py = lm[4].y - lm[8].y;
-    var pinchRaw = Math.sqrt(px * px + py * py) / scale;
+      var raw = (handedness[i] && handedness[i][0] && handedness[i][0].categoryName) || '';
+      var label = raw === 'Left' ? 'L' : (raw === 'Right' ? 'R' : '');
+      if (this.swap && label) label = label === 'L' ? 'R' : 'L';
+      if (!label) label = i === 0 ? 'L' : 'R';
 
-    // 스무딩 (떨림 완화)
-    if (!this._smooth) this._smooth = { x: palm.x, y: palm.y, p: pinchRaw };
-    var a = 0.42;
-    this._smooth.x += (palm.x - this._smooth.x) * a;
-    this._smooth.y += (palm.y - this._smooth.y) * a;
-    this._smooth.p += (pinchRaw - this._smooth.p) * 0.3;
+      var c = countOf(lm);
+      var palm = {
+        x: (lm[0].x * 0.2 + lm[5].x * 0.2 + lm[9].x * 0.25 + lm[13].x * 0.2 + lm[17].x * 0.15),
+        y: (lm[0].y * 0.2 + lm[5].y * 0.2 + lm[9].y * 0.25 + lm[13].y * 0.2 + lm[17].y * 0.15)
+      };
+      var size = dist(lm[0], lm[9]);
 
-    /* 검지 끝(랜드마커 8) — 조준 포인터용.
-       떨림은 줄이되 움직임이 크면 빨리 따라가도록 적응형 스무딩 */
-    var tipRaw = { x: lm[8].x, y: lm[8].y };
-    if (!this._tip) this._tip = { x: tipRaw.x, y: tipRaw.y };
-    var tdx = tipRaw.x - this._tip.x, tdy = tipRaw.y - this._tip.y;
-    var tmove = Math.sqrt(tdx * tdx + tdy * tdy);
-    var aTip = tmove > 0.035 ? 0.8 : (tmove > 0.012 ? 0.5 : 0.3);
-    this._tip.x += tdx * aTip;
-    this._tip.y += tdy * aTip;
-
-    /* 편 손가락 개수 (엄지~새끼) — 손목에서 먼 쪽으로 판정 */
-    var fingers = 0;
-    var wrist = lm[0];
-    var pairs = [[8, 6], [12, 10], [16, 14], [20, 18]];
-    for (var f = 0; f < pairs.length; f++) {
-      if (dist2(lm[pairs[f][0]], wrist) > dist2(lm[pairs[f][1]], wrist) * 1.12) fingers++;
+      out.push({
+        label: label,
+        raw: raw,
+        count: c.count,
+        extended: c.extended,
+        x: palm.x,
+        y: palm.y,
+        size: size,
+        landmarks: lm
+      });
     }
-    if (dist2(lm[4], wrist) > dist2(lm[2], wrist) * 1.15) fingers++;
 
-    this.raw = lm;
-    return {
-      x: this._smooth.x,
-      y: this._smooth.y,
-      tipX: this._tip.x,
-      tipY: this._tip.y,
-      fingers: fingers,
-      pinch: this._smooth.p,
-      scale: scale,
-      landmarks: lm,
-      handedness: (res.handedness && res.handedness[0] && res.handedness[0][0]) ? res.handedness[0][0].categoryName : ''
-    };
+    /* 같은 라벨이 둘이면 화면 위치로 갈라 둔다 */
+    if (out.length === 2 && out[0].label === out[1].label) {
+      var a = out[0], b = out[1];
+      if (a.x > b.x) { a.label = 'R'; b.label = 'L'; }
+      else { a.label = 'L'; b.label = 'R'; }
+    }
+
+    this.hands = out.map(this._stabilize, this);
+    return this.hands;
   };
 
-  HandTracker.prototype.reset = function () {
-    this._smooth = null;
-    this._tip = null;
-    this.raw = null;
+  /* 손가락 개수 흔들림 제거 — 최근 5프레임 다수결(동률이면 직전 값) */
+  HandTracker.prototype._stabilize = function (h) {
+    var s = this._smooth[h.label] || (this._smooth[h.label] = { hist: [], count: 0, mx: 0, my: 0 });
+    s.hist.push(h.count);
+    if (s.hist.length > 5) s.hist.shift();
+
+    var tally = [0, 0, 0, 0, 0, 0];
+    for (var i = 0; i < s.hist.length; i++) tally[s.hist[i]]++;
+    var best = s.count, bestN = 0;
+    for (var v = 0; v <= 5; v++) {
+      if (tally[v] > bestN) { bestN = tally[v]; best = v; }
+      else if (tally[v] === bestN && v === s.count) { best = v; }
+    }
+    s.count = best;
+
+    var a = 0.4;
+    s.mx = s.mx ? s.mx + (h.x - s.mx) * a : h.x;
+    s.my = s.my ? s.my + (h.y - s.my) * a : h.y;
+
+    var copy = {};
+    for (var k in h) copy[k] = h[k];
+    copy.count = s.count;
+    copy.fx = s.mx;
+    copy.fy = s.my;
+    copy.fingers = h.extended;
+    return copy;
   };
 
   global.HB = global.HB || {};
   global.HB.HandTracker = HandTracker;
+  global.HB.fingersOf = fingersOf;
   global.HB.HAND_TASKS_VERSION = VERSION;
 })(window);

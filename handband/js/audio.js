@@ -57,89 +57,44 @@
     this.volume = 0.82;
     this.reverb = 0.55;
     this.level = 0;
-    this.failed = null;
     this._expr = { vol: 1, bright: 1 };
-    this._unlocked = false;
   }
 
   Synth.prototype.isReady = function () { return !!this.ctx; };
 
-  /* iOS Safari: 'interrupted' 상태도 있으니 running이 아니면 resume */
-  Synth.prototype.isRunning = function () {
-    return !!this.ctx && this.ctx.state === 'running';
-  };
+  Synth.prototype.state = function () { return this.ctx ? this.ctx.state : 'none'; };
 
-  Synth.prototype.resume = function () {
-    var ctx = this.ctx;
-    if (!ctx) return false;
-    if (ctx.state === 'running') return true;
-    try {
-      var pr = ctx.resume();
-      if (pr && pr.catch) pr.catch(function () {});
-    } catch (e) { /* noop */ }
-    return ctx.state === 'running';
-  };
-
-  /* iOS 오디오 세션: 무음 스위치/수화기 라우팅 문제 방지 */
-  Synth.prototype.setAudioSession = function (recording) {
-    try {
-      var nav = global.navigator;
-      if (nav && 'audioSession' in nav && nav.audioSession) {
-        nav.audioSession.type = recording ? 'play-and-record' : 'playback';
-      }
-    } catch (e) { /* unsupported */ }
-  };
-
-  /*
-   * 사용자 제스처 안에서(await 이전, 동기로) 호출해야 하는 잠금 해제 루틴.
-   * AudioContext 생성 → resume → 1샘플 무음 버퍼 재생까지 한 번에.
-   */
+  /* 사용자 손가락이 닿은 그 순간에 동기로 불러야 iOS 잠금이 풀린다 */
   Synth.prototype.unlock = function () {
     try {
-      this.setAudioSession(false);
-      var ctx = this.start();
-      if (!ctx) return false;
-      this.resume();
-      this._silence(ctx);
-      this._unlocked = true;
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
+      if (global.navigator && global.navigator.audioSession) {
+        global.navigator.audioSession.type = 'play-and-record';
+      }
+    } catch (e) { /* iOS 17+ 전용 */ }
 
-  Synth.prototype._silence = function (ctx) {
-    try {
-      var buf = ctx.createBuffer(1, 1, ctx.sampleRate || 44100);
-      var src = ctx.createBufferSource();
-      src.buffer = buf;
-      src.connect(ctx.destination);
-      try { src.start(0); } catch (e) { src.start(); }
-      try { src.stop((ctx.currentTime || 0) + 0.01); } catch (e) { /* noop */ }
-    } catch (e) { /* noop */ }
+    var started = this.start();
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      try {
+        var b = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
+        var src = this.ctx.createBufferSource();
+        src.buffer = b;
+        src.connect(this.ctx.destination);
+        src.start(0);
+      } catch (e) { /* noop */ }
+    }
+    return started;
   };
 
   Synth.prototype.start = function () {
     if (this.ctx) {
-      this.resume();
-      this._silence(this.ctx);
-      return this.ctx;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      return Promise.resolve();
     }
     var AC = global.AudioContext || global.webkitAudioContext;
-    if (!AC) { this.failed = 'no-webaudio'; return null; }
+    if (!AC) return Promise.reject(new Error('no-webaudio'));
 
-    var ctx;
-    try { ctx = new AC({ latencyHint: 'interactive' }); }
-    catch (e) {
-      try { ctx = new AC(); } catch (e2) { this.failed = 'ctor'; return null; }
-    }
-    this.ctx = ctx;
-    if (ctx.onstatechange !== undefined) {
-      var self = this;
-      ctx.onstatechange = function () {
-        if (typeof self.onStateChange === 'function') self.onStateChange(ctx.state);
-      };
-    }
+    var ctx = this.ctx = new AC({ latencyHint: 'interactive' });
 
     this.voiceBus = ctx.createGain();
     this.expr = ctx.createGain();          // 손 오므림 → 음량
@@ -209,8 +164,8 @@
     this.setVolume(this.volume);
     this.setReverb(this.reverb);
 
-    this.resume();
-    return ctx;
+    if (ctx.state === 'suspended') ctx.resume();
+    return Promise.resolve();
   };
 
   Synth.prototype._makeIR = function (seconds, decay) {
@@ -279,7 +234,6 @@
   /* 코드 연주 — notes: MIDI 번호 배열 */
   Synth.prototype.play = function (notes, vel) {
     if (!this.ctx || !notes || !notes.length) return;
-    if (this.ctx.state !== 'running') this.resume();
     var ctx = this.ctx, p = PRESETS[this.preset], t = ctx.currentTime;
     this.release(0.28);
 

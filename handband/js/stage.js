@@ -69,7 +69,7 @@
       lineH: baseSize * 1.02 + baseSize * 0.60 * 1.5 + baseSize * 0.34
     };
     var f = 1 - (L.lineH * 1.35) / Math.max(1, L.bandH);
-    L.anchorY = bandTop + L.bandH * clamp(f, 0.30, 0.60);
+    L.anchorY = bandTop + L.bandH * clamp(f, 0.30, land ? 0.60 : 0.74);
     return L;
   }
 

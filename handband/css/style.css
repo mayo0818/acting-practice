@@ -400,7 +400,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 
 /* ── 미리보기(녹화) ────────────────────────── */
 .take__stage{padding:14px 18px;background:#1b1611}
-.take__stage video{width:100%;border-radius:12px;display:block;background:#000;max-height:56dvh;aspect-ratio:9/16;object-fit:contain}
+.take__stage video{display:block;margin:0 auto;height:min(56dvh,520px);width:auto;max-width:100%;aspect-ratio:9/16;border-radius:12px;background:#000;object-fit:contain}
 .take__meta{font-size:11.5px;color:var(--ink-3)}
 .take__note{margin:8px 2px 0;font-size:10.5px;color:rgba(255,248,238,.55);text-align:center;line-height:1.5}
 .modal__err{font-size:11.5px;color:#b4473f;max-width:180px;line-height:1.35;text-align:right}

@@ -366,11 +366,12 @@
     else return;
 
     if (recCv.width !== w) { recCv.width = w; recCv.height = h; }
-    var s = 1;
-    recCtx.setTransform(s, 0, 0, s, 0, 0);
-    var keep = S.recording;
+    recCtx.setTransform(1, 0, 0, 1, 0, 0);
+    /* 녹화 프레임에는 DOM 컨트롤 바가 없으니 여백도 그에 맞춰 */
+    var keepInset = S.inset;
+    S.inset = { top: Math.round(h * 0.075), bottom: Math.round(h * 0.05) };
     Stage.render(recCtx, w, h, S);
-    S.recording = keep;
+    S.inset = keepInset;
   }
 
   function recStreamCanvas() {

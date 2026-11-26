@@ -231,7 +231,8 @@
     return compiled.lines.map(function (line, li) {
       var chords = line.chords || [];
       var segs = [];
-      var x = 0;
+      /* 첫 코드 앞의 가사(예: "당신도 스윽 ")도 자리를 차지한다 */
+      var x = chords.length ? textWidth(line.text.slice(0, chords[0].at), L.base, 'lyric') : 0;
       for (var i = 0; i < chords.length; i++) {
         var end = i + 1 < chords.length ? chords[i + 1].at : line.text.length;
         var txt = line.text.slice(chords[i].at, end);
@@ -239,9 +240,9 @@
         segs.push({ x: x, w: wSeg, text: txt, sym: chords[i].sym, left: chords[i].left, bank: chords[i].bank });
         x += wSeg;
       }
-      var total = x || textWidth(line.text, L.base, 'lyric');
+      var total = textWidth(line.text, L.base, 'lyric');
       var scale = 1;
-      if (total > maxW && total > 0) scale = Math.max(0.62, maxW / total);
+      if (total > maxW && total > 0) scale = Math.max(0.52, maxW / total);
       return {
         index: li,
         text: line.text,
@@ -260,11 +261,13 @@
     if (!compiled || !compiled.lines.length) return;
 
     var key = L.w.toFixed(0) + 'x' + L.h.toFixed(0) + '|' + (S.transpose || 0) + '|' + L.base.toFixed(1) + '|' + (compiled.rev || 0);
-    if (!S._lyr || S._lyrKey !== key) {
-      S._lyr = lineMetrics(compiled, L, L.w * 0.84);
-      S._lyrKey = key;
+    var store = S._lyrCache || (S._lyrCache = {});
+    if (!store[key]) {
+      store[key] = lineMetrics(compiled, L, L.w * 0.84);
+      var keys = Object.keys(store);
+      if (keys.length > 4) delete store[keys[0]];
     }
-    var metrics = S._lyr;
+    var metrics = store[key];
 
     var curLine = S.step ? S.step.lineIndex : 0;
     if (S.scroll == null) S.scroll = curLine;
@@ -294,7 +297,7 @@
       if (d < -2.1 || d > 2.1) continue;
 
       var active = Math.abs(d) < 0.45;
-      var alpha = active ? 1 : Math.max(0, 0.6 - (Math.abs(d) - 0.45) * 0.3);
+      var alpha = active ? 1 : Math.max(0, 0.58 - (Math.abs(d) - 0.45) * 0.42);
       if (alpha <= 0.015) continue;
       if (!m.text && !m.segs.length) continue;
 

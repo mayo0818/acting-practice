@@ -17,56 +17,47 @@
     return out;
   }
 
-  /* 코드 배열 + 가사 줄들 → 줄별 코드 위치 */
+  /* 코드 배열 + 가사 줄들 → 줄별 코드 위치
+     · 줄마다 코드 개수는 가사 길이에 비례
+     · 줄 안에서는 낱말에 고르게 (마지막 코드는 마지막 낱말에) */
   function distribute(chords, lines) {
     var n = chords.length;
     if (!n) return lines.map(function () { return []; });
 
-    var total = 0;
-    var lineStart = [];
-    for (var i = 0; i < lines.length; i++) { lineStart.push(total); total += lines[i].length + 1; }
+    var lens = lines.map(function (l) { return Math.max(1, l.trim().length); });
+    var totalLen = lens.reduce(function (a, b) { return a + b; }, 0);
+    var counts = lens.map(function (l) { return Math.max(0, Math.round(n * l / totalLen)); });
 
-    var anchors = [];
-    for (var c = 0; c < n; c++) {
-      var frac = n > 1 ? c / n : 0;
-      var abs = Math.floor(frac * total);
-      var li = 0;
-      for (var j = 0; j < lines.length; j++) {
-        if (abs <= lineStart[j] + lines[j].length || j === lines.length - 1) { li = j; break; }
-      }
-      var local = Math.max(0, Math.min(lines[li].length, abs - lineStart[li]));
-      var ws = wordStarts(lines[li]);
-      var best = ws[0], bd = Infinity;
-      for (var k = 0; k < ws.length; k++) {
-        var d = Math.abs(ws[k] - local);
-        if (d < bd) { bd = d; best = ws[k]; }
-      }
-      anchors.push({ line: li, at: best, sym: chords[c] });
+    var sum = counts.reduce(function (a, b) { return a + b; }, 0);
+    while (sum < n) {
+      var bi = 0;
+      for (var i = 1; i < counts.length; i++) if (counts[i] < counts[bi]) bi = i;
+      counts[bi]++; sum++;
     }
-
-    /* 같은 자리에 두 코드가 오면 한 칸씩 밀어 글자 위에 흩어 놓는다 */
-    var buckets = [];
-    for (var b = 0; b < lines.length; b++) buckets.push([]);
-    anchors.forEach(function (a) { buckets[a.line].push(a); });
+    while (sum > n) {
+      var mi = 0;
+      for (var k = 1; k < counts.length; k++) if (counts[k] > counts[mi]) mi = k;
+      if (counts[mi] <= 0) break;
+      counts[mi]--; sum--;
+    }
 
     var out = [];
-    for (var L = 0; L < lines.length; L++) {
-      var list = buckets[L].sort(function (x, y) { return x.at - y.at; });
-      var prev = -1;
-      var placed = [];
-      for (var q = 0; q < list.length; q++) {
-        var at = list[q].at;
-        if (at <= prev) at = prev + 1;
-        if (at > lines[L].length) at = lines[L].length;
-        if (at <= prev) {
-          /* 줄 끝까지 밀어도 자리가 없으면 마지막 코드로 겹쳐 둔다 */
-          at = lines[L].length;
-        }
-        placed.push({ sym: list[q].sym, at: at });
-        prev = at === lines[L].length ? prev : at;
+    var ci = 0;
+    for (var li = 0; li < lines.length; li++) {
+      var text = lines[li];
+      var k2 = counts[li] || 0;
+      var ws = wordStarts(text);
+      var arr = [];
+      for (var j = 0; j < k2 && ci < n; j++) {
+        var at;
+        if (k2 === 1) at = 0;
+        else if (k2 <= ws.length) at = ws[Math.round(j * (ws.length - 1) / (k2 - 1))];
+        else at = Math.min(text.length, Math.round(j * text.length / k2));
+        arr.push({ sym: chords[ci++], at: at });
       }
-      out.push(placed.sort(function (x, y) { return x.at - y.at; }));
+      out.push(arr);
     }
+    while (ci < n) out[out.length - 1].push({ sym: chords[ci++], at: Math.max(0, out[out.length - 1].length) });
     return out;
   }
 

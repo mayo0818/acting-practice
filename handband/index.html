@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>HandBand Reels — 손으로 연주하는 코드 신스</title>
+<meta name="description" content="손 제스처로 코드를 연주하고, 가사와 함께 그대로 촬영해 릴스로 남기는 웹 신스. 악보 추가·편집, 3가지 프리셋 사운드, 카메라 미러 뷰.">
+<meta name="theme-color" content="#efe6da">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="HandBand">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23231d17'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%23e0bd8a' stroke-width='2'/%3E%3Cpath d='M32 13v9M32 42v9M13 32h9M42 32h9' stroke='%23e0bd8a' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23e0bd8a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8.6 11.2V6.1a1.4 1.4 0 0 1 2.8 0v4.6"/><path d="M11.4 10.4V4.8a1.4 1.4 0 0 1 2.8 0v5.6"/><path d="M14.2 10.8V6.3a1.4 1.4 0 0 1 2.8 0v6"/><path d="M17 12.3V9.7a1.4 1.4 0 0 1 2.8 0v6.1c0 3.2-2.4 5.6-5.6 5.6h-1.3c-1.6 0-2.8-.6-3.7-1.7l-3.2-4a1.4 1.4 0 0 1 2.1-1.8l1.9 1.9"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 8.2h7.6M16.4 8.2H20M4 15.8h3.2M11.9 15.8H20"/><circle cx="14" cy="8.2" r="2.3"/><circle cx="9.6" cy="15.8" r="2.3"/></symbol>
+  <symbol id="i-score" viewBox="0 0 24 24"><path d="M5 4.6h9.4L19 9.2v10.2H5z"/><path d="M14.2 4.6v4.8H19M8.2 13.2h7.6M8.2 16.4h5"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.6 6.6 10.8 10.8M17.4 6.6 6.6 17.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.2v13.6M5.2 12h13.6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5.2 7.4h13.6M9.6 7.4V5.2h4.8v2.2M7 7.4l.8 11.4h8.4L17 7.4"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4.6v10.2M7.8 11l4.2 4 4.2-4M5 18.6h14"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15.4V4.4M8.2 8l3.8-3.6L15.8 8"/><path d="M6 12.6v6.8h12v-6.8"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M9 6.4v11.2l9-5.6z"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M6.4 9.4h8.2a4.6 4.6 0 0 1 0 9.2H8.6"/><path d="M9.8 5.6 6 9.4l3.8 3.8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5.6 12.6 4.2 4.2 8.6-9"/></symbol>
+</svg>
+
+<div class="app" id="app">
+
+  <!-- ── 악보 패널 ─────────────────────────────── -->
+  <aside class="side" id="sideScore" aria-label="악보">
+    <div class="side__head">
+      <span class="eyebrow">악보</span>
+      <button class="iconbtn side__close" data-close aria-label="닫기"><svg><use href="#i-close"/></svg></button>
+    </div>
+
+    <div class="songpick" id="songPick">
+      <button class="songpick__current" id="songBtn" aria-haspopup="listbox">
+        <span class="songpick__title" id="songTitle">—</span>
+        <span class="songpick__meta" id="songMeta">—</span>
+        <span class="songpick__caret">▾</span>
+      </button>
+      <div class="songlist" id="songList" role="listbox"></div>
+    </div>
+
+    <div class="parts" id="partTabs"></div>
+
+    <div class="block">
+      <div class="block__label">코드 진행 <span class="hint" id="chordHint"></span></div>
+      <div class="chips" id="chordChips"></div>
+    </div>
+
+    <div class="block block--grow">
+      <div class="block__label">가사 · 메모</div>
+      <div class="lyricbox" id="lyricBox"></div>
+    </div>
+
+    <div class="side__foot">
+      <div class="transpose">
+        <button class="tbtn" data-tr="-1" aria-label="반음 내리기">♭</button>
+        <span class="tval" id="trVal">0</span>
+        <button class="tbtn" data-tr="1" aria-label="반음 올리기">♯</button>
+      </div>
+      <button class="btn btn--ghost" id="editSong"><svg><use href="#i-score"/></svg>편집</button>
+      <button class="btn btn--ghost" id="newSong"><svg><use href="#i-plus"/></svg>새 곡</button>
+    </div>
+  </aside>
+
+  <!-- ── 스테이지 ─────────────────────────────── -->
+  <main class="stage">
+    <div class="frame" id="frame">
+      <canvas id="view" width="720" height="1280"></canvas>
+
+      <div class="hud">
+        <div class="hud__top">
+          <div class="hud__left">
+            <button class="pill" id="openScore">
+              <svg class="pill__ico"><use href="#i-score"/></svg>
+              <span id="topTitle">악보</span>
+            </button>
+          </div>
+          <div class="hud__right">
+            <button class="iconbtn" id="trackBtn" aria-pressed="true" title="손 추적 켜기/끄기"><svg><use href="#i-hand"/></svg><span class="dotstate" id="trackDot"></span></button>
+            <button class="iconbtn" id="openSound" title="사운드 · 촬영"><svg><use href="#i-sliders"/></svg></button>
+          </div>
+        </div>
+
+        <div class="partrow" id="partRow"></div>
+
+        <div class="hud__bottom">
+          <button class="ghostchip" id="muteBtn" title="소리 끄기">코드 끄기</button>
+          <button class="rec" id="recBtn">
+            <span class="rec__ring"><span class="rec__dot"></span></span>
+            <span class="rec__label" id="recLabel">촬영</span>
+          </button>
+          <button class="ghostchip" id="camBtn" title="카메라 다시 켜기">카메라</button>
+        </div>
+      </div>
+
+      <div class="count" id="countdown" aria-hidden="true"><span></span></div>
+      <div class="toast" id="toast" role="status"></div>
+    </div>
+  </main>
+
+  <!-- ── 사운드 · 촬영 패널 ────────────────────── -->
+  <aside class="side side--right" id="sideSound" aria-label="사운드와 촬영">
+    <div class="side__head">
+      <span class="eyebrow">사운드</span>
+      <button class="iconbtn side__close" data-close aria-label="닫기"><svg><use href="#i-close"/></svg></button>
+    </div>
+
+    <div class="block">
+      <div class="block__label">프리셋</div>
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <div class="block">
+      <div class="block__label">표정 <span class="hint">손을 오므리면 작게</span></div>
+      <label class="slider"><span>리버브</span><input type="range" id="revRange" min="0" max="100" value="55"><em id="revVal">55</em></label>
+      <label class="slider"><span>볼륨</span><input type="range" id="volRange" min="0" max="100" value="82"><em id="volVal">82</em></label>
+    </div>
+
+    <div class="block">
+      <div class="block__label">화면에 보이기</div>
+      <div class="toggles">
+        <label class="tog"><input type="checkbox" id="tWheel" checked><span>코드 휠</span></label>
+        <label class="tog"><input type="checkbox" id="tLyric" checked><span>가사</span></label>
+        <label class="tog"><input type="checkbox" id="tHands" checked><span>손 관절</span></label>
+        <label class="tog"><input type="checkbox" id="tDots" checked><span>진행 점</span></label>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block__label">촬영</div>
+      <div class="toggles">
+        <label class="tog"><input type="checkbox" id="tCount" checked><span>3초 카운트다운</span></label>
+        <label class="tog"><input type="checkbox" id="tMic" checked><span>마이크 함께 녹음</span></label>
+      </div>
+      <p class="note" id="recNote">소리는 스피커로 돌아가지 않아요. 마이크는 녹화 파일에만 들어갑니다.</p>
+    </div>
+
+    <div class="block block--grow">
+      <div class="block__label">녹화한 영상</div>
+      <div class="takes" id="takes"><p class="empty">아직 없어요</p></div>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim" hidden></div>
+</div>
+
+<!-- ── 시작 화면 ───────────────────────────────── -->
+<div class="intro" id="intro">
+  <div class="intro__card">
+    <div class="intro__mark">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="46" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".5"/>
+        <circle cx="60" cy="60" r="30" fill="none" stroke="currentColor" stroke-width="1" opacity=".28"/>
+        <path d="M60 14v18M60 88v18M14 60h18M88 60h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
+        <circle cx="60" cy="60" r="7" fill="currentColor" opacity=".9"/>
+      </svg>
+    </div>
+    <h1>손끝으로, 노래를.</h1>
+    <p>손을 허공에 올리면 코드가 울려요.<br>엄지와 검지를 벌리면 커지고, 오므리면 잦아들어요.</p>
+    <button class="btn btn--solid intro__go" id="startBtn">시작하기</button>
+    <button class="intro__skip" id="skipCam">카메라 없이 연주하기</button>
+    <p class="intro__fine">카메라 영상은 이 기기 안에서만 쓰여요. 서버로 보내지 않습니다.</p>
+  </div>
+</div>
+
+<!-- ── 악보 편집 모달 ──────────────────────────── -->
+<div class="modal" id="editorModal" hidden>
+  <div class="modal__panel modal__panel--wide">
+    <div class="modal__head">
+      <h2 id="editorTitle">악보 만들기</h2>
+      <button class="iconbtn" data-mclose aria-label="닫기"><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="modal__body">
+      <div class="field-row">
+        <label class="field"><span>곡 제목</span><input id="fTitle" type="text" placeholder="예) 주저하는 연인들을 위해" maxlength="60"></label>
+        <label class="field"><span>아티스트</span><input id="fArtist" type="text" placeholder="예) 잔나비" maxlength="40"></label>
+      </div>
+      <label class="field"><span>키 · 메모 <em>선택</em></span><input id="fKey" type="text" placeholder="예) B♭ (원곡) · 카포 3 G폼" maxlength="60"></label>
+
+      <div class="field-label">구간</div>
+      <div id="partsEditor" class="partsEditor"></div>
+      <button class="btn btn--ghost btn--sm" id="addPart"><svg><use href="#i-plus"/></svg>구간 추가</button>
+
+      <div class="preview" id="editorPreview">
+        <div class="preview__label">미리보기</div>
+        <div class="preview__chips" id="previewChips"></div>
+        <div class="preview__msg" id="previewMsg"></div>
+      </div>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--danger btn--sm" id="deleteSong"><svg><use href="#i-trash"/></svg>삭제</button>
+      <button class="btn btn--ghost btn--sm" id="resetSong"><svg><use href="#i-undo"/></svg>기본값</button>
+      <span class="spacer"></span>
+      <span class="modal__err" id="editorErr"></span>
+      <button class="btn btn--ghost" data-mclose>취소</button>
+      <button class="btn btn--solid" id="saveSong"><svg><use href="#i-check"/></svg>저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 녹화 미리보기 ───────────────────────────── -->
+<div class="modal" id="takeModal" hidden>
+  <div class="modal__panel modal__panel--take">
+    <div class="modal__head">
+      <h2>방금 찍은 영상</h2>
+      <button class="iconbtn" data-mclose aria-label="닫기"><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="take__stage">
+      <video id="takeVideo" playsinline controls></video>
+      <p class="take__note">아이폰은 ‘공유’ → ‘동영상 저장’으로 사진 앱에 담겨요.</p>
+    </div>
+    <div class="modal__foot">
+      <span class="take__meta" id="takeMeta"></span>
+      <span class="spacer"></span>
+      <button class="btn btn--ghost" id="shareTake" hidden><svg><use href="#i-share"/></svg>공유</button>
+      <a class="btn btn--solid" id="saveTake" download><svg><use href="#i-download"/></svg>저장</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/chords.js"></script>
+<script src="js/songs.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/hands.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

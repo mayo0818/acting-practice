@@ -379,12 +379,12 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   animation:rise .28s cubic-bezier(.2,.9,.3,1);
 }
 .modal__panel--wide{width:min(100%,680px)}
-.modal__panel--take{width:min(100%,420px)}
+.modal__panel--take{width:min(100%,420px);max-height:94dvh}
 @keyframes rise{from{transform:translateY(16px) scale(.985);opacity:0}to{transform:none;opacity:1}}
-.modal__head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.modal__head{display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
 .modal__head h2{margin:0;font-size:15.5px;font-weight:650;letter-spacing:-.02em}
 .modal__body{padding:16px 18px;overflow:auto;display:flex;flex-direction:column;gap:13px}
-.modal__foot{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.5)}
+.modal__foot{display:flex;align-items:center;flex:0 0 auto;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:rgba(255,255,255,.5)}
 
 .field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
 .field>span{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--ink-3)}
@@ -418,8 +418,8 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .preview__msg.bad{color:#b4473f}
 
 /* ── 미리보기(녹화) ────────────────────────── */
-.take__stage{padding:14px 18px;background:#1b1611}
-.take__stage video{display:block;margin:0 auto;height:min(56dvh,520px);width:auto;max-width:100%;border-radius:12px;background:#000;object-fit:contain}
+.take__stage{padding:14px 18px;background:#1b1611;min-height:0;overflow:auto}
+.take__stage video{display:block;margin:0 auto;height:min(52dvh,520px);width:auto;max-width:100%;border-radius:12px;background:#000;object-fit:contain}
 .take__meta{font-size:11.5px;color:var(--ink-3)}
 .take__note{margin:8px 2px 0;font-size:10.5px;color:rgba(255,248,238,.55);text-align:center;line-height:1.5}
 .modal__err{font-size:11.5px;color:#b4473f;max-width:180px;line-height:1.35;text-align:right}
@@ -466,6 +466,9 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   .intro__skip{margin-top:8px;font-size:11.5px}
   .intro__fine{margin-top:10px;font-size:9.5px}
   .modal__panel{max-height:94dvh}
+  .take__stage{padding:8px 12px}
+  .take__stage video{height:min(42dvh,340px)}
+  .take__note{margin:6px 2px 0;font-size:10px}
 }
 
 /* ── 오디오 잠금 안내 배지 ──────────────────── */

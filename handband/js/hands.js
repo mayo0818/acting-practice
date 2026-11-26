@@ -57,7 +57,12 @@
     return this._pending;
   };
 
-  /* 매 프레임 호출. 반환: {x,y,pinch,scale,landmarks} 또는 null */
+  function dist2(a, b) {
+    var dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  /* 매 프레임 호출. 반환: {x,y,tipX,tipY,fingers,pinch,scale,landmarks} 또는 null */
   HandTracker.prototype.detect = function (video, ts) {
     if (!this.ready || !this.landmarker || !video) return null;
     if (!video.videoWidth || video.readyState < 2) return null;
@@ -97,10 +102,32 @@
     this._smooth.y += (palm.y - this._smooth.y) * a;
     this._smooth.p += (pinchRaw - this._smooth.p) * 0.3;
 
+    /* 검지 끝(랜드마커 8) — 조준 포인터용.
+       떨림은 줄이되 움직임이 크면 빨리 따라가도록 적응형 스무딩 */
+    var tipRaw = { x: lm[8].x, y: lm[8].y };
+    if (!this._tip) this._tip = { x: tipRaw.x, y: tipRaw.y };
+    var tdx = tipRaw.x - this._tip.x, tdy = tipRaw.y - this._tip.y;
+    var tmove = Math.sqrt(tdx * tdx + tdy * tdy);
+    var aTip = tmove > 0.035 ? 0.8 : (tmove > 0.012 ? 0.5 : 0.3);
+    this._tip.x += tdx * aTip;
+    this._tip.y += tdy * aTip;
+
+    /* 편 손가락 개수 (엄지~새끼) — 손목에서 먼 쪽으로 판정 */
+    var fingers = 0;
+    var wrist = lm[0];
+    var pairs = [[8, 6], [12, 10], [16, 14], [20, 18]];
+    for (var f = 0; f < pairs.length; f++) {
+      if (dist2(lm[pairs[f][0]], wrist) > dist2(lm[pairs[f][1]], wrist) * 1.12) fingers++;
+    }
+    if (dist2(lm[4], wrist) > dist2(lm[2], wrist) * 1.15) fingers++;
+
     this.raw = lm;
     return {
       x: this._smooth.x,
       y: this._smooth.y,
+      tipX: this._tip.x,
+      tipY: this._tip.y,
+      fingers: fingers,
       pinch: this._smooth.p,
       scale: scale,
       landmarks: lm,
@@ -110,6 +137,7 @@
 
   HandTracker.prototype.reset = function () {
     this._smooth = null;
+    this._tip = null;
     this.raw = null;
   };
 

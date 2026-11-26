@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body>
 
@@ -96,6 +96,9 @@
             </div>
           </div>
           <div class="partrow" id="partRow"></div>
+          <div class="audiobar" id="audioBar" hidden>
+            <button class="audiobar__btn" id="audioUnlock" type="button">🔊 소리 켜기</button>
+          </div>
         </div>
 
         <div class="hud__bottom">
@@ -139,6 +142,15 @@
         <label class="tog"><input type="checkbox" id="tHands" checked><span>손 관절</span></label>
         <label class="tog"><input type="checkbox" id="tDots" checked><span>진행 점</span></label>
       </div>
+    </div>
+
+    <div class="block">
+      <div class="block__label">손 포인터 <span class="hint">고르는 방식</span></div>
+      <div class="modes" id="pointerModes">
+        <button type="button" class="modebtn" data-pmode="aim">검지 끝 조준</button>
+        <button type="button" class="modebtn" data-pmode="fingers">손가락 개수</button>
+      </div>
+      <p class="note" id="pmodeNote">검지 끝으로 부채꼴을 짚으면 그 코드가 켜져요. 가운데 원은 중립(지금 코드 유지).</p>
     </div>
 
     <div class="block">
@@ -192,7 +204,7 @@
       </div>
       <label class="field"><span>키 · 메모 <em>선택</em></span><input id="fKey" type="text" placeholder="예) B♭ (원곡) · 카포 3 G폼" maxlength="60"></label>
 
-      <div class="field-label">구간</div>
+      <div class="field-label">구간 <span class="hint">가사에 [Bb]처럼 코드를 넣으면 그 자리에 코드가 떠요</span></div>
       <div id="partsEditor" class="partsEditor"></div>
       <button class="btn btn--ghost btn--sm" id="addPart"><svg><use href="#i-plus"/></svg>구간 추가</button>
 
@@ -233,10 +245,10 @@
   </div>
 </div>
 
-<script src="js/chords.js?v=7"></script>
-<script src="js/songs.js?v=7"></script>
-<script src="js/audio.js?v=7"></script>
-<script src="js/hands.js?v=7"></script>
-<script src="js/app.js?v=7"></script>
+<script src="js/chords.js?v=8"></script>
+<script src="js/songs.js?v=8"></script>
+<script src="js/audio.js?v=8"></script>
+<script src="js/hands.js?v=8"></script>
+<script src="js/app.js?v=8"></script>
 </body>
 </html>

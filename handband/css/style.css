@@ -420,7 +420,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
     box-shadow:0 -24px 60px rgba(50,32,16,.28);
   }
   .side.is-open{transform:none}
-  .side__close{display:grid}
+  .iconbtn.side__close{display:grid}
   .songlist{max-height:38dvh}
   .hud{padding-top:calc(10px + var(--safe-t))}
 }

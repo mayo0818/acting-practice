@@ -236,6 +236,7 @@
   }
 
   function readGesture() {
+    if (state.sim) return state.sim;
     if (virtual && now < virtual.until) {
       return { left: virtual.left, right: virtual.right, bank: virtual.bank, hasRight: true };
     }
@@ -1110,6 +1111,7 @@
     fire: fireChord, tap: function (n) { virtual = { left: n, right: 5, bank: S.step ? S.step.bank : 1, until: performance.now() + 900 }; },
     current: function () { return S.step; },
     hands: function (arr) { S.hands = arr; },
+    simulate: function (g) { state.sim = g || null; },
     layout: function () { return Stage.layout(view.clientWidth, view.clientHeight, S.inset); },
     tickNow: function () { return now; }
   };

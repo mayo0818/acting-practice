@@ -274,8 +274,8 @@
 
     /* 위쪽 어둡게 — 가사가 영상 위에서 읽히도록 */
     var bg = ctx.createLinearGradient(0, 0, 0, L.bandBottom + L.base * 0.8);
-    bg.addColorStop(0, 'rgba(8,5,3,.70)');
-    bg.addColorStop(0.55, 'rgba(8,5,3,.32)');
+    bg.addColorStop(0, 'rgba(8,5,3,.86)');
+    bg.addColorStop(0.42, 'rgba(8,5,3,.52)');
     bg.addColorStop(1, 'rgba(8,5,3,0)');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, L.w, L.bandBottom + L.base * 0.8);

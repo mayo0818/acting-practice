@@ -32,6 +32,7 @@ body{
   font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
   font-size:16px;line-height:1.72;letter-spacing:-0.01em;
   word-break:keep-all;overflow-wrap:break-word;
+  overflow-x:clip;
   -webkit-font-smoothing:antialiased;
 }
 img{max-width:100%;display:block}
@@ -248,9 +249,13 @@ figcaption{position:absolute;left:0;bottom:0;padding:10px 14px;background:rgba(9
   .tt-notes{grid-template-columns:1fr}
 }
 @media (max-width:760px){
-  .header-inner{height:62px}
+  .header-inner{height:62px;gap:10px}
+  .brand{gap:0}
   .brand-name{font-size:15.5px}
+  .brand-name span{display:none}
   .brand-url{display:none}
+  .header-call{gap:8px}
+  .header-call .btn{padding:8px 13px;font-size:13px;white-space:nowrap}
   .facts-grid{grid-template-columns:1fr 1fr}
   .fact{padding:20px 16px}
   .fact:nth-child(odd){border-left:0;padding-left:0}

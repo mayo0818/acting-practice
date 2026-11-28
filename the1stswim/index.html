@@ -31,6 +31,7 @@ body{
   margin:0;background:var(--paper);color:var(--body);
   font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
   font-size:16px;line-height:1.72;letter-spacing:-0.01em;
+  word-break:keep-all;overflow-wrap:break-word;
   -webkit-font-smoothing:antialiased;
 }
 img{max-width:100%;display:block}
@@ -44,7 +45,7 @@ button{font:inherit;color:inherit}
   font-size:11px;font-weight:600;letter-spacing:.22em;color:var(--aqua);
   text-transform:uppercase;margin-bottom:14px;
 }
-.section{padding:clamp(64px,9vw,112px) 0}
+.section{padding:clamp(56px,7.5vw,96px) 0}
 .section-head{max-width:640px;margin-bottom:clamp(32px,4vw,56px)}
 .section-head h2{font-size:clamp(26px,3.3vw,38px);margin-bottom:16px}
 .section-head p{color:var(--body)}
@@ -196,12 +197,11 @@ table.tt-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-
 
 /* gallery */
 .gallery{background:var(--bg)}
-.gallery-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:16px}
-figure{margin:0;position:relative;overflow:hidden;background:#dfe6e8}
+.gallery-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:16px;grid-auto-rows:clamp(210px,25vw,330px)}
+figure{margin:0;position:relative;overflow:hidden;background:#dfe6e8;height:100%}
 figure img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
 figure:hover img{transform:scale(1.03)}
 figcaption{position:absolute;left:0;bottom:0;padding:10px 14px;background:rgba(9,30,41,.72);color:#fff;font-size:12.5px;letter-spacing:.04em}
-.gallery-grid figure{aspect-ratio:4/3}
 
 /* visit */
 .visit-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,64px);align-items:start}
@@ -260,7 +260,8 @@ figcaption{position:absolute;left:0;bottom:0;padding:10px 14px;background:rgba(9
   .tabs{display:none}
   .cards{grid-template-columns:1fr}
   .gallery-grid{grid-template-columns:1fr}
-  .gallery-grid figure{aspect-ratio:4/3}
+  .gallery-grid{grid-auto-rows:auto}
+  .gallery-grid figure{aspect-ratio:4/3;height:auto}
   .gallery-grid figure:first-child{grid-column:auto}
   .about-media img{aspect-ratio:4/3}
   .closing h3{font-size:20px}
@@ -405,7 +406,7 @@ figcaption{position:absolute;left:0;bottom:0;padding:10px 14px;background:rgba(9
           <p>생존수영교육 전용 대기실과 휴게 공간을 마련했습니다.</p>
         </article>
         <article class="card">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 9.5A6.5 6.5 0 0 1 18.5 9.5z"/><path d="M8 13v1.5M12 13v2M16 13v1.5"/><path d="M12 3v1.5"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v2.5"/><path d="M7 10.5a5 5 0 0 1 10 0H7z"/><path d="M9 13.5v1.5M12 13.5v2.5M15 13.5v1.5"/></svg>
           <h3>올케어 시스템</h3>
           <p>수영 교육은 물론 샤워와 머리카락 건조까지 꼼꼼히 챙기는 어린이 강습입니다.</p>
         </article>

@@ -95,7 +95,10 @@ button{font:inherit;color:inherit}
 .hero-content{max-width:680px}
 .eyebrow{font-size:12.5px;letter-spacing:.16em;color:rgba(255,255,255,.82);margin-bottom:20px}
 .hero h1{color:#fff;font-size:clamp(36px,6.2vw,62px);letter-spacing:-0.045em;margin-bottom:22px}
-.hero-lead{font-size:clamp(16px,1.8vw,19px);line-height:1.7;color:rgba(255,255,255,.9);margin-bottom:34px}
+.hero-lead{font-size:clamp(16px,1.8vw,19px);line-height:1.7;color:rgba(255,255,255,.9);margin-bottom:16px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:6px 20px;margin:0 0 32px;font-size:14.5px;color:rgba(255,255,255,.88)}
+.hero-meta li{position:relative;padding-left:13px;white-space:nowrap}
+.hero-meta li::before{content:"";position:absolute;left:0;top:.72em;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.55)}
 .hero-actions{display:flex;flex-wrap:wrap;gap:12px}
 .hero-facts{position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.24);background:rgba(9,30,41,.35)}
 .facts-grid{display:grid;grid-template-columns:repeat(4,1fr)}
@@ -305,7 +308,12 @@ figcaption{position:absolute;left:0;bottom:0;padding:10px 14px;background:rgba(9
       <div class="hero-content">
         <p class="eyebrow">부산 연제구 · 어린이 교육 특성화 수영장</p>
         <h1>THE 퍼스트 수영장</h1>
-        <p class="hero-lead">어린이 교육 특성화 수영장으로 특히나 생존수영교육에 최적화되어 있습니다.<br>어린이풀 부산 최대 규모 9개 레인 · 4계절 31도 · 락스 0% 수질관리</p>
+        <p class="hero-lead">어린이 교육 특성화 수영장으로 특히나 생존수영교육에 최적화되어 있습니다.</p>
+        <ul class="hero-meta">
+          <li>어린이풀 부산 최대 규모 9개 레인</li>
+          <li>4계절 31도</li>
+          <li>락스 0% 수질관리</li>
+        </ul>
         <div class="hero-actions">
           <a class="btn btn-primary" href="tel:0518521141">전화 문의 051-852-1141</a>
           <a class="btn btn-ghost" href="#timetable">강습시간표 보기</a>
